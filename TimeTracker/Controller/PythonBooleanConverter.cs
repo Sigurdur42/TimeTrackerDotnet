@@ -12,11 +12,19 @@ public class PythonBooleanConverter : BooleanConverter
         {
             text = "false";
         }
-        else if (text == "True")
-        {
-            text = "true";
-        }
 
         return base.ConvertFromString(text, row, memberMapData);
+    }
+
+    public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
+    {
+        var result = base.ConvertToString(value, row, memberMapData);
+        result = result switch
+        {
+            "False" => "",
+            _ => result
+        };
+
+        return result;
     }
 }

@@ -17,6 +17,25 @@ public class CsvConfigurationTests
         _resourceLoader = new ResourceLoader();
     }
 
+    [Test]
+    public void TestLoadAndWriteCsv()
+    {
+        // load reference data
+        var target = new TimeRecordSerializer();
+        var csvContent = _resourceLoader.GetEmbeddedResourceString(_assembly, "DataFile.csv");
+        
+        var referenceData = target.Deserialize(csvContent);
+        
+        // Now write it to hard disc
+        var writtenData = target.Serialize(referenceData);
+        
+        // read that again
+        var reloadedData = target.Deserialize(writtenData);
+        
+        // Now verify that all objects are equal
+        Assert.That(referenceData, Is.EqualTo(reloadedData));
+    }
+    
 
     [Test]
     public void TestLoadDataFile()
