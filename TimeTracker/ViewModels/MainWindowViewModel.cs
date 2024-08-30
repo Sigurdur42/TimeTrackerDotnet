@@ -7,4 +7,5 @@ namespace TimeTracker.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
     private ObservableCollection<TimeRecord> _rawData = new();
+    private ObservableCollection<TimeRecordCategorized> _categorizedData = new();
 }

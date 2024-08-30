@@ -9,7 +9,7 @@ public class TimeRecordCalculatorTests
 {
     ResourceLoader _resourceLoader = null!;
     readonly Assembly _assembly = Assembly.GetExecutingAssembly();
-    readonly CultureInfo _culture = new ("de-de");
+    readonly CultureInfo _culture = new("de-de");
     TimeRecord[] _data = [];
 
     [OneTimeSetUp]
@@ -32,11 +32,37 @@ public class TimeRecordCalculatorTests
         var result = target.CalculateCategorySummary(_data);
 
         var refDate = DateOnly.Parse(date, _culture);
-        var found = result.First(_=> _.Date == refDate && _.Category == category);
+        var found = result.First(_ => _.Date == refDate && _.Category == category);
         Assert.Multiple(() =>
         {
             Assert.That(found.WorkMinutes, Is.EqualTo(work), "Work");
             Assert.That(found.TravelMinutes, Is.EqualTo(travel), "Travel");
         });
     }
+
+    [TestCase("29.05.2024", -1 * (1 * 60 + 10))]
+    [TestCase("01.07.2024", 2 * 60 + 00)]
+    [TestCase("27.01.2024", 7 * 60 + 00)]
+    [TestCase("17.02.2024", 10 * 60 + 20)]
+    public void VerifyByDayCalculation(string date, decimal overtime)
+    {
+        var target = new TimeRecordCalculator();
+        var result = target.CalculateByDay(_data);
+
+        var refDate = DateOnly.Parse(date, _culture);
+        var found = result.First(_ => _.Date == refDate);
+        Assert.That(found.OvertimeMinutes, Is.EqualTo(overtime), "overtime");
+    }
+    
+    [TestCase("07.2024", 14 * 60 + 55)]
+    [TestCase("05.2024", -1 * (16 * 60 + 05))]
+    public void VerifyByMonthCalculation(string month, decimal overtime)
+    {
+        var target = new TimeRecordCalculator();
+        var result = target.CalculateByMonth(_data);
+
+        
+        var found = result.First(_ => _.MonthDisplay == month);
+        Assert.That(found.OvertimeMinutes, Is.EqualTo(overtime), "overtime");
+    }    
 }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using TimeTracker.Models;
 
 namespace TimeTracker.Tests;
@@ -20,6 +21,21 @@ public class TimeRecordTests
         };
 
         var result = target.Category;
-        Assert.That(expectedCategory, Is.EqualTo(result));
+        Assert.That(result, Is.EqualTo(expectedCategory));
+    }
+    
+    
+    [TestCase("01.01.2024", "01.2024")]
+    [TestCase("31.01.2024", "01.2024")]
+    public void MonthTests(string date, string expetedMonth)
+    {
+        var refDate = DateOnly.Parse(date, new CultureInfo("de-de"));
+        var target = new TimeRecord
+        {
+            Date = refDate
+        };
+
+        var result = target.Month;
+        Assert.That(result, Is.EqualTo(expetedMonth));
     }
 }

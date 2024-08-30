@@ -37,6 +37,16 @@ public partial class TimeRecord : ObservableObject, IEquatable<TimeRecord>
         }
     }
 
+    [Ignore]
+    public string Month
+    {
+        get
+        {
+            var date = Date;
+            return $"{date.Month:d2}.{date.Year:d4}";
+        }
+    }
+
     public bool Equals(TimeRecord? other)
     {
         if (other is null) return false;
