@@ -15,6 +15,20 @@
         <PackageReference Include="NUnit3TestAdapter" Version="4.2.1"/>
         <PackageReference Include="NUnit.Analyzers" Version="3.6.1"/>
         <PackageReference Include="coverlet.collector" Version="6.0.0"/>
+        <PackageReference Include="ResourceLoader" Version="3.3.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="TestData\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="TestData\DataFile.csv" />
+      <EmbeddedResource Include="TestData\DataFile.csv" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TimeTracker\TimeTracker.csproj" />
     </ItemGroup>
 
 </Project>
