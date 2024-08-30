@@ -1,8 +1,10 @@
-﻿namespace TimeTracker.ViewModels;
+﻿using System.Collections.ObjectModel;
+using TimeTracker.Models;
 
+namespace TimeTracker.ViewModels;
+
+// ReSharper disable once PartialTypeWithSinglePart
 public partial class MainWindowViewModel : ViewModelBase
 {
-#pragma warning disable CA1822 // Mark members as static
-    public string Greeting => "Welcome to Avalonia!";
-#pragma warning restore CA1822 // Mark members as static
+    private ObservableCollection<TimeRecord> _rawData = new();
 }

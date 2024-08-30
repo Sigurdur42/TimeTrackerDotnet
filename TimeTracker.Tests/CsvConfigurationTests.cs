@@ -9,7 +9,7 @@ public class CsvConfigurationTests
 {
     ResourceLoader _resourceLoader = null!;
     readonly Assembly _assembly = Assembly.GetExecutingAssembly();
-    private CultureInfo _culture = new CultureInfo("de-de");
+    readonly CultureInfo _culture = new ("de-de");
 
     [OneTimeSetUp]
     public void OneTimeSetUp()
