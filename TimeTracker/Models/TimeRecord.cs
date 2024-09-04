@@ -1,18 +1,60 @@
 using System;
-using System.Globalization;
-using CommunityToolkit.Mvvm.ComponentModel;
+using System.Runtime.InteropServices.JavaScript;
 using CsvHelper.Configuration.Attributes;
+using ReactiveUI;
 
 namespace TimeTracker.Models;
 
-public partial class TimeRecord : ObservableObject, IEquatable<TimeRecord>
+public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
 {
-    [ObservableProperty] DateOnly _date;
-    [ObservableProperty] TimeOnly _start;
-    [ObservableProperty] private TimeOnly _end;
-    [ObservableProperty] private bool _allOvertime;
-    [ObservableProperty] private string? _comment;
-    [ObservableProperty] private bool _travel;
+    private DateOnly _date;
+    private TimeOnly _start;
+    private TimeOnly _end;
+    private bool _allOvertime;
+    private bool _travel;
+    private string? _comment;
+
+    [Index(0)]
+    public DateOnly Date
+    {
+        get => _date;
+        set => this.RaiseAndSetIfChanged(ref _date, value);
+    }
+
+    [Index(1)]
+    public TimeOnly Start
+    {
+        get => _start;
+        set => this.RaiseAndSetIfChanged(ref _start, value);
+    }
+
+    [Index(2)]
+    public TimeOnly End
+    {
+        get => _end;
+        set => this.RaiseAndSetIfChanged(ref _end, value);
+    }
+
+    [Index(3)]
+    public bool AllOvertime
+    {
+        get => _allOvertime;
+        set => this.RaiseAndSetIfChanged(ref _allOvertime, value);
+    }
+
+    [Index(5)]
+    public bool Travel
+    {
+        get => _travel;
+        set => this.RaiseAndSetIfChanged(ref _travel, value);
+    }
+
+    [Index(4)]
+    public string? Comment
+    {
+        get => _comment;
+        set => this.RaiseAndSetIfChanged(ref _comment, value);
+    }
 
     [Ignore] public TimeSpan Duration => End - Start;
 

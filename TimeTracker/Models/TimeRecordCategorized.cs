@@ -1,12 +1,36 @@
 using System;
-using CommunityToolkit.Mvvm.ComponentModel;
+using ReactiveUI;
 
 namespace TimeTracker.Models;
 
-public partial class TimeRecordCategorized : ObservableObject
+public partial class TimeRecordCategorized : ReactiveObject
 {
-    [ObservableProperty] DateOnly _date;
-    [ObservableProperty] decimal _workMinutes;
-    [ObservableProperty] decimal _travelMinutes;
-    [ObservableProperty] string? _category;
+    DateOnly _date;
+    decimal _workMinutes;
+    decimal _travelMinutes;
+    string? _category;
+
+    public DateOnly Date
+    {
+        get => _date;
+        set => this.RaiseAndSetIfChanged(ref _date, value);
+    }
+
+    public decimal TravelMinutes
+    {
+        get => _travelMinutes;
+        set => this.RaiseAndSetIfChanged(ref _travelMinutes, value);
+    }
+
+    public decimal WorkMinutes
+    {
+        get => _workMinutes;
+        set => this.RaiseAndSetIfChanged(ref _workMinutes, value);
+    }
+
+    public string Category
+    {
+        get => _category;
+        set => this.RaiseAndSetIfChanged(ref _category, value);
+    }
 }

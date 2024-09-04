@@ -1,11 +1,17 @@
-﻿using System.Collections.ObjectModel;
-using TimeTracker.Models;
+﻿using ReactiveUI;
 
-namespace TimeTracker.ViewModels;
+namespace TimeTrackerUi.ViewModels;
 
-// ReSharper disable once PartialTypeWithSinglePart
-public partial class MainWindowViewModel : ViewModelBase
+public class MainWindowViewModel : ViewModelBase
 {
-    private ObservableCollection<TimeRecord> _rawData = new();
-    private ObservableCollection<TimeRecordCategorized> _categorizedData = new();
+    
+    private string _fileName = string.Empty;
+
+
+
+    public string FileName
+    {
+        get => _fileName;
+        set => this.RaiseAndSetIfChanged(ref _fileName, value);
+    }
 }

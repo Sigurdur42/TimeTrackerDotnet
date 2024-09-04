@@ -1,10 +1,22 @@
 using System;
-using CommunityToolkit.Mvvm.ComponentModel;
+using ReactiveUI;
 
 namespace TimeTracker.Models;
 
-public partial class TimeRecordByDay : ObservableObject
+public partial class TimeRecordByDay : ReactiveObject
 {
-    [ObservableProperty] DateOnly _date;
-    [ObservableProperty] decimal _overtimeMinutes;
+    DateOnly _date;
+    decimal _overtimeMinutes;
+
+    public DateOnly Date
+    {
+        get => _date;
+        set => this.RaiseAndSetIfChanged(ref _date, value);
+    }
+
+    public decimal OvertimeMinutes
+    {
+        get => _overtimeMinutes;
+        set => this.RaiseAndSetIfChanged(ref _overtimeMinutes, value);
+    }
 }

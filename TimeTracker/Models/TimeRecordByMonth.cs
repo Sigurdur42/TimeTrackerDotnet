@@ -1,15 +1,32 @@
 using System;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CsvHelper.Configuration.Attributes;
+using ReactiveUI;
 
 namespace TimeTracker.Models;
 
-public partial class TimeRecordByMonth : ObservableObject
+public partial class TimeRecordByMonth : ReactiveObject
 {
-    [ObservableProperty] DateOnly _date;
-    [ObservableProperty] decimal _overtimeMinutes;
-    [ObservableProperty] decimal _totalMinutes;
+    DateOnly _date;
+    decimal _overtimeMinutes;
+    decimal _totalMinutes;
 
-    [Ignore]
-    public string MonthDisplay => $"{Date.Month:d2}.{Date.Year:d4}";
+    public DateOnly Date
+    {
+        get => _date;
+        set => this.RaiseAndSetIfChanged(ref _date, value);
+    }
+
+    public decimal OvertimeMinutes
+    {
+        get => _overtimeMinutes;
+        set => this.RaiseAndSetIfChanged(ref _overtimeMinutes, value);
+    }
+
+    public decimal TotalMinutes
+    {
+        get => _totalMinutes;
+        set => this.RaiseAndSetIfChanged(ref _totalMinutes, value);
+    }
+
+    [Ignore] public string MonthDisplay => $"{Date.Month:d2}.{Date.Year:d4}";
 }

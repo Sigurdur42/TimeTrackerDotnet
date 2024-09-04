@@ -1,12 +1,10 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using TimeTracker.ViewModels;
-using TimeTracker.Views;
+using TimeTrackerUi.ViewModels;
+using TimeTrackerUi.Views;
 
-namespace TimeTracker;
+namespace TimeTrackerUi;
 
 public partial class App : Application
 {
@@ -17,17 +15,21 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        MainWindow? window = null;
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Line below is needed to remove Avalonia data validation.
-            // Without this line you will get duplicate validations from both Avalonia and CT
-            BindingPlugins.DataValidators.RemoveAt(0);
-            desktop.MainWindow = new MainWindow
+            var viewModel = new MainWindowViewModel();
+            window = new MainWindow
             {
-                DataContext = new MainWindowViewModel(),
+                DataContext = viewModel,
+                ViewModel = viewModel,
             };
+
+            desktop.MainWindow = window;
         }
 
         base.OnFrameworkInitializationCompleted();
+        window?.Change();
+        
     }
 }

@@ -1,10 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:TimeTracker.ViewModels"
+        xmlns:vm="using:TimeTrackerUi.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="TimeTracker.Views.MainWindow"
+        x:Class="TimeTrackerUi.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="TimeTracker">
@@ -15,6 +15,45 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <!-- <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/> -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- First row with browser and file name -->
+        <TabControl>
+            <TabItem Header="Data File">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Click="OnBrowseButtonClick">Load data file...</Button>
+                    <TextBlock Grid.Column="1" Text="{Binding FileName, FallbackValue='Wait a second'}" />
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- First row with browser and file name -->
+        <TabControl Grid.Row="2">
+            <TabItem Header="Loaded Data">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0">Load data file...</Button>
+                    <TextBlock Grid.Column="1">TODO: File name here</TextBlock>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+    </Grid>
 
 </Window>

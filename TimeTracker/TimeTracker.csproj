@@ -6,6 +6,7 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <RootNamespace>TimeTracker</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,8 +20,8 @@
         <PackageReference Include="Avalonia.Fonts.Inter" Version="11.1.0"/>
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.1.0"/>
-        <PackageReference Include="CommunityToolkit.Common" Version="8.3.0" />
-        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
+        <PackageReference Include="Avalonia.ReactiveUI" Version="11.1.0"/>
         <PackageReference Include="CsvHelper" Version="33.0.1" />
+        <PackageReference Include="Semi.Avalonia" Version="11.1.0" />
     </ItemGroup>
 </Project>
