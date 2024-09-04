@@ -1,6 +1,6 @@
 ﻿using ReactiveUI;
 
-namespace TimeTrackerUi.ViewModels;
+namespace TimeTracker.ViewModels;
 
 public class ViewModelBase : ReactiveObject
 {

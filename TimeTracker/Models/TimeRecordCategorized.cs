@@ -28,7 +28,7 @@ public partial class TimeRecordCategorized : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _workMinutes, value);
     }
 
-    public string Category
+    public string? Category
     {
         get => _category;
         set => this.RaiseAndSetIfChanged(ref _category, value);

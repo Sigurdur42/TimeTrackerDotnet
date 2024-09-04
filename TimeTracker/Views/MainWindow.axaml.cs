@@ -4,16 +4,17 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using TimeTrackerUi.ViewModels;
+using TimeTracker.ViewModels;
 
-namespace TimeTrackerUi.Views;
+namespace TimeTracker.Views;
 
 public partial class MainWindow : Window
 {
-    internal MainWindowViewModel ViewModel { get; set; }
+    internal MainWindowViewModel ViewModel { get; init; } = null!;
 
     public MainWindow()
     {
+        
         InitializeComponent();
     }
 

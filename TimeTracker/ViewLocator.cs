@@ -1,9 +1,9 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using TimeTrackerUi.ViewModels;
+using TimeTracker.ViewModels;
 
-namespace TimeTrackerUi;
+namespace TimeTracker;
 
 public class ViewLocator : IDataTemplate
 {

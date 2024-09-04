@@ -2,7 +2,7 @@
 using Avalonia.ReactiveUI;
 using System;
 
-namespace TimeTrackerUi;
+namespace TimeTracker;
 
 sealed class Program
 {

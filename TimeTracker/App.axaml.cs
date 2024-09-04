@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using TimeTrackerUi.ViewModels;
-using TimeTrackerUi.Views;
+using TimeTracker.ViewModels;
+using TimeTracker.Views;
 
-namespace TimeTrackerUi;
+namespace TimeTracker;
 
 public partial class App : Application
 {
