@@ -57,8 +57,10 @@
             <TabItem Header="Loaded Data">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="3*" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="5" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
@@ -82,6 +84,42 @@
                         </DataGrid.Columns>
                     </DataGrid>
 
+                    <DataGrid
+                        Grid.Column="2"
+                        VerticalAlignment="Stretch"
+                        Margin="0"
+                        ItemsSource="{Binding CategorizedData}"
+                        AutoGenerateColumns="False"
+                        IsReadOnly="True"
+                        GridLinesVisibility="All"
+                        SelectionMode="Single"
+                        BorderThickness="1"
+                        VerticalScrollBarVisibility="Visible"
+                        BorderBrush="Gray">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
+                            <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" />
+                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <DataGrid
+                        Grid.Column="4"
+                        VerticalAlignment="Stretch"
+                        Margin="0"
+                        ItemsSource="{Binding ByDayData}"
+                        AutoGenerateColumns="False"
+                        IsReadOnly="True"
+                        GridLinesVisibility="All"
+                        SelectionMode="Single"
+                        BorderThickness="1"
+                        VerticalScrollBarVisibility="Visible"
+                        BorderBrush="Gray">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
+                            <DataGridTextColumn Header="Overtime" Binding="{Binding Overtime}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </Grid>
             </TabItem>
         </TabControl>

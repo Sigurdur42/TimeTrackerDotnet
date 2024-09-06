@@ -33,4 +33,6 @@ public partial class TimeRecordCategorized : ReactiveObject
         get => _category;
         set => this.RaiseAndSetIfChanged(ref _category, value);
     }
+    
+    public TimeSpan Duration => TimeSpan.FromMinutes((double)(TravelMinutes + WorkMinutes));
 }

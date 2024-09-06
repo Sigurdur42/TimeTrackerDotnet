@@ -19,4 +19,6 @@ public partial class TimeRecordByDay : ReactiveObject
         get => _overtimeMinutes;
         set => this.RaiseAndSetIfChanged(ref _overtimeMinutes, value);
     }
+    
+    public TimeSpan Overtime => TimeSpan.FromMinutes((double)OvertimeMinutes);
 }

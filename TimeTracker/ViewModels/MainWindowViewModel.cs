@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Drawing.Design;
 using System.IO;
 using System.Linq;
 using Avalonia.Controls;
@@ -13,10 +14,11 @@ namespace TimeTracker.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-    private string _fileName = string.Empty;
     private ILocalSettings _settings;
 
-    public ObservableCollection<TimeRecord> RawData { get; } = new();
+    public ObservableCollection<TimeRecord> RawData { get; } = [];
+    public ObservableCollection<TimeRecordCategorized> CategorizedData { get; } = [];
+    public ObservableCollection<TimeRecordByDay> ByDayData { get; } = [];
 
     public MainWindowViewModel()
     {
@@ -46,10 +48,25 @@ public class MainWindowViewModel : ViewModelBase
 
         var serializer = new TimeRecordSerializer();
         var data = serializer.Deserialize(fileInfo);
-        
+
         _settings.LastDataFile = fileInfo.FullName;
         this.RaisePropertyChanged(nameof(FileName));
 
         RawData.AddRange(data.OrderByDescending(d => d.Date));
+        Recalculate();
+    }
+
+    private void Recalculate()
+    {
+        var calculator = new TimeRecordCalculator();
+        var raw = RawData.ToArray();
+
+        var categorized = calculator.CalculateCategorySummary(raw);
+        CategorizedData.Clear();
+        CategorizedData.AddRange(categorized.OrderByDescending(_ => _.Date).ThenBy(_ => _.Category));
+
+        var byDay = calculator.CalculateByDay(raw);
+        ByDayData.Clear();
+        ByDayData.AddRange(byDay.OrderByDescending(_ => _.Date));
     }
 }
