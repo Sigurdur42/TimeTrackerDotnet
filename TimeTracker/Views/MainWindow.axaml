@@ -12,7 +12,7 @@
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainWindowViewModel/>
+        <vm:MainWindowViewModel />
     </Design.DataContext>
 
     <Grid>
@@ -23,22 +23,36 @@
         </Grid.RowDefinitions>
 
         <!-- First row with browser and file name -->
-        <TabControl>
-            <TabItem Header="Data File">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
 
-                    <Button Grid.Column="0" Click="OnBrowseButtonClick">Load data file...</Button>
-                    <TextBlock Grid.Column="1" Text="{Binding FileName, FallbackValue='Wait a second'}" />
-                </Grid>
-            </TabItem>
-        </TabControl>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Grid.Column="0">Data File:</Label>
+            <Button Grid.Row="0" Grid.Column="2" Click="OnBrowseButtonClick" Margin="5,0,5,0">Load data file...</Button>
+            <TextBlock Grid.Row="0" Grid.Column="1" Margin="5,0,5,0" Text="{Binding FileName, FallbackValue='Wait a second'}" />
+
+            <Label Grid.Row="1" Grid.Column="0">Records:</Label>
+            <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" ColumnDefinitions="*,*,*">
+                <Button Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5,0,0,0">New Record...</Button>
+                <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" Margin="5,0,5,0">Edit...</Button>
+                <Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" Margin="5,0,5,0">Delete...</Button>
+            </Grid>
+
+        </Grid>
+
 
         <!-- First row with browser and file name -->
-        <TabControl Grid.Row="2">
+        <TabControl Grid.Row="2" VerticalAlignment="Top">
             <TabItem Header="Loaded Data">
                 <Grid>
                     <Grid.ColumnDefinitions>
