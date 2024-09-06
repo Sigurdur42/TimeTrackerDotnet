@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TimeTracker.App"
              xmlns:local="using:TimeTracker"
+             xmlns:material="clr-namespace:Material.Styles.Themes;assembly=Material.Styles"
+             xmlns:antDesign="clr-namespace:AntDesign;assembly=AntDesign"
              xmlns:semi="https://irihi.tech/semi"
              RequestedThemeVariant="Default">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
@@ -15,8 +17,15 @@
         <!-- <SimpleTheme/> -->
 
         <!-- Theme from https://github.com/irihitech/Semi.Avalonia -->
-        <semi:SemiTheme Locale="de-de" />
+        <!-- <semi:SemiTheme Locale="de-de" /> -->
         
+        <!-- Theme from https://github.com/MicroSugarDeveloperOrg/AntDesign.Avalonia/tree/main --> 
+        <!-- <antDesign:AntDesign Coloring="None" IsRounded="True"/> -->
+        <!-- <AntDesignDataGrid/> -->
+        <!-- <AntDesignColorPicker/> -->
+        
+        <!-- Theme from https://github.com/AvaloniaCommunity/Material.Avalonia?tab=readme-ov-file --> 
+        <material:MaterialTheme BaseTheme="Inherit" PrimaryColor="Purple" SecondaryColor="Lime" />
         
         <Style Selector="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center" />

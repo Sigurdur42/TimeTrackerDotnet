@@ -39,7 +39,8 @@
 
             <Label Grid.Row="0" Grid.Column="0">Data File:</Label>
             <Button Grid.Row="0" Grid.Column="2" Click="OnBrowseButtonClick" Margin="5,0,5,0">Load data file...</Button>
-            <TextBlock Grid.Row="0" Grid.Column="1" Margin="5,0,5,0" Text="{Binding FileName, FallbackValue='Wait a second'}" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Margin="5,0,5,0"
+                       Text="{Binding FileName, FallbackValue='Wait a second'}" />
 
             <Label Grid.Row="1" Grid.Column="0">Records:</Label>
             <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" ColumnDefinitions="*,*,*">
@@ -51,19 +52,36 @@
         </Grid>
 
 
-        <!-- First row with browser and file name -->
-        <TabControl Grid.Row="2" VerticalAlignment="Top">
+        <!-- Second row with data details -->
+        <TabControl Grid.Row="2" VerticalAlignment="Stretch">
             <TabItem Header="Loaded Data">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <Button Grid.Column="0">Load data file...</Button>
-                    <TextBlock Grid.Column="1">TODO: File name here</TextBlock>
+                    <DataGrid
+                        VerticalAlignment="Stretch"
+                        Margin="0"
+                        ItemsSource="{Binding RawData}"
+                        AutoGenerateColumns="False"
+                        IsReadOnly="True"
+                        GridLinesVisibility="All"
+                        SelectionMode="Single"
+                        BorderThickness="1"
+                        VerticalScrollBarVisibility="Visible"
+                        BorderBrush="Gray">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
+                            <DataGridTextColumn Header="Start" Binding="{Binding Start}" />
+                            <DataGridTextColumn Header="End" Binding="{Binding End}" />
+                            <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" />
+                            <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
                 </Grid>
             </TabItem>
         </TabControl>

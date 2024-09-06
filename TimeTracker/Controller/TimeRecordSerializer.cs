@@ -18,6 +18,11 @@ public class TimeRecordSerializer
         HasHeaderRecord = false,
     };
 
+    public TimeRecord[] Deserialize(FileInfo file)
+    {
+        return Deserialize(File.ReadAllText(file.FullName));
+    }
+    
     public TimeRecord[] Deserialize(string csvContent)
     {
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csvContent));
