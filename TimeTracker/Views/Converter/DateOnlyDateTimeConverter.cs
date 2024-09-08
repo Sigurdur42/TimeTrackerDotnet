@@ -23,6 +23,6 @@ public class DateOnlyDateTimeConverter : IValueConverter
             return DateOnly.FromDateTime(date.DateTime);
         }
 
-        return null;
+        throw new NotImplementedException();
     }
 }

@@ -93,12 +93,11 @@
                         VerticalScrollBarVisibility="Visible"
                         BorderBrush="Gray">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
-                            <DataGridTextColumn Header="Start" Binding="{Binding Start}" />
-                            <DataGridTextColumn Header="End" Binding="{Binding End}" />
+                            <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=dd.MM.yyyy, Mode=OneWay}" />
+                            <DataGridTextColumn Header="Start" Binding="{Binding Start, StringFormat=HH:mm, Mode=OneWay}" />
+                            <DataGridTextColumn Header="End" Binding="{Binding End, StringFormat=HH:mm, Mode=OneWay}" />
                             <DataGridTextColumn Header="Duration"
-
-                                                Binding="{Binding Duration, Converter={StaticResource DurationDisplayConverter}}" />
+                                                Binding="{Binding Duration, Converter={StaticResource DurationDisplayConverter}, Mode=OneWay}" />
                             <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" />
                         </DataGrid.Columns>
                     </DataGrid>
@@ -116,10 +115,10 @@
                         VerticalScrollBarVisibility="Visible"
                         BorderBrush="Gray">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
+                            <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=dd.MM.yyyy, Mode=OneWay}" />
                             <DataGridTextColumn Header="Duration"
-                                                Binding="{Binding Duration, Converter={StaticResource DurationDisplayConverter}}" />
-                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" />
+                                                Binding="{Binding Duration, Converter={StaticResource DurationDisplayConverter}, Mode=OneWay}" />
+                            <DataGridTextColumn Header="Category" Binding="{Binding Category, Mode=OneWay}" />
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -137,13 +136,14 @@
                         BorderBrush="Gray">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
-                            <DataGridTemplateColumn Header="Overtime" 
+                            <DataGridTemplateColumn Header="Overtime"
                                                     Width="Auto">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}}"
-                                                   Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}}" 
+                                        <TextBlock Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}, Mode=OneWay}"
+                                                   Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}, Mode=OneWay}"
                                                    HorizontalAlignment="Right"
+                            
                                         />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
@@ -167,13 +167,13 @@
                     BorderBrush="Gray">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Date" Binding="{Binding MonthDisplay}" />
-                        <DataGridTemplateColumn Header="Overtime" 
+                        <DataGridTemplateColumn Header="Overtime"
                                                 Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}}"
                                                HorizontalAlignment="Right"
-                                               Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}}" 
+                                               Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}}"
                                     />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
