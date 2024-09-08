@@ -5,7 +5,7 @@
              xmlns:material="clr-namespace:Material.Styles.Themes;assembly=Material.Styles"
              xmlns:antDesign="clr-namespace:AntDesign;assembly=AntDesign"
              xmlns:semi="https://irihi.tech/semi"
-             RequestedThemeVariant="Default">
+             RequestedThemeVariant="Light">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.DataTemplates>

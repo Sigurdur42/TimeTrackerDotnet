@@ -16,6 +16,7 @@ public class MainWindowViewModel : ViewModelBase
 {
     private readonly ILocalSettings _settings;
     private TimeSpan _totalOvertime;
+    private TimeRecord? _selectedDaiy;
 
     public ObservableCollection<TimeRecord> RawData { get; } = [];
     public ObservableCollection<TimeRecordCategorized> CategorizedData { get; } = [];
@@ -26,6 +27,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _totalOvertime;
         set => this.RaiseAndSetIfChanged(ref _totalOvertime, value);
+    }
+
+    public TimeRecord? SelectedDaiy
+    {
+        get => _selectedDaiy;
+        set => this.RaiseAndSetIfChanged(ref _selectedDaiy, value);
     }
 
     public MainWindowViewModel()
@@ -62,6 +69,15 @@ public class MainWindowViewModel : ViewModelBase
 
         RawData.AddRange(data.OrderByDescending(d => d.Date));
         Recalculate();
+    }
+
+    public void RecalculateAndSaveData()
+    {
+        Recalculate();
+
+
+        var serializer = new TimeRecordSerializer();
+        serializer.Serialize(new FileInfo(FileName!), RawData.ToArray());
     }
 
     private void Recalculate()

@@ -3,19 +3,25 @@
         xmlns:vm="using:TimeTracker.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converter="clr-namespace:TimeTracker.Views.Converter"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TimeTracker.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="TimeTracker">
 
+    <Window.Resources>
+        <converter:DurationDisplayConverter x:Key="DurationDisplayConverter" />
+        <converter:OvertimeDisplayConverter x:Key="OvertimeDisplayConverter" />
+        <converter:TimeSpanToBrushConverter x:Key="TimeSpanToBrushConverter" />
+    </Window.Resources>
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid>
+    <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="5" />
@@ -45,9 +51,12 @@
 
             <Label Grid.Row="1" Grid.Column="0">Records:</Label>
             <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" ColumnDefinitions="*,*,*">
-                <Button Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5,0,0,0">New Record...</Button>
-                <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" Margin="5,0,5,0">Edit...</Button>
-                <Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" Margin="5,0,5,0">Delete...</Button>
+                <Button Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5,0,0,0" Click="OnNewRecord">New Record...</Button>
+                <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" Margin="5,0,5,0"
+                        Click="OnEditRecord">
+                    Edit...
+                </Button>
+                <Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" Margin="5,0,5,0" IsEnabled="False">Delete...</Button>
             </Grid>
 
         </Grid>
@@ -55,13 +64,12 @@
         <!-- Row with overview -->
         <StackPanel Grid.Row="2" Spacing="0,0,0,5" Orientation="Horizontal">
             <Label>Total Overtime:</Label>
-            <TextBlock Text="{Binding TotalOvertime}" />
+            <TextBlock Text="{Binding TotalOvertime, Converter={StaticResource OvertimeDisplayConverter}}" 
+                       Foreground="{Binding TotalOvertime, Converter={StaticResource TimeSpanToBrushConverter}}"/>
         </StackPanel>
 
         <!-- Second row with data details -->
         <TabControl Grid.Row="4" VerticalAlignment="Stretch">
-
-
             <TabItem Header="Loaded Data">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -81,13 +89,16 @@
                         GridLinesVisibility="All"
                         SelectionMode="Single"
                         BorderThickness="1"
+                        SelectedItem="{Binding SelectedDaiy}"
                         VerticalScrollBarVisibility="Visible"
                         BorderBrush="Gray">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
                             <DataGridTextColumn Header="Start" Binding="{Binding Start}" />
                             <DataGridTextColumn Header="End" Binding="{Binding End}" />
-                            <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" />
+                            <DataGridTextColumn Header="Duration"
+
+                                                Binding="{Binding Duration, Converter={StaticResource DurationDisplayConverter}}" />
                             <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" />
                         </DataGrid.Columns>
                     </DataGrid>
@@ -106,7 +117,8 @@
                         BorderBrush="Gray">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
-                            <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" />
+                            <DataGridTextColumn Header="Duration"
+                                                Binding="{Binding Duration, Converter={StaticResource DurationDisplayConverter}}" />
                             <DataGridTextColumn Header="Category" Binding="{Binding Category}" />
                         </DataGrid.Columns>
                     </DataGrid>
@@ -125,7 +137,17 @@
                         BorderBrush="Gray">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
-                            <DataGridTextColumn Header="Overtime" Binding="{Binding Overtime}" />
+                            <DataGridTemplateColumn Header="Overtime" 
+                                                    Width="Auto">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}}"
+                                                   Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}}" 
+                                                   HorizontalAlignment="Right"
+                                        />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -145,7 +167,17 @@
                     BorderBrush="Gray">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Date" Binding="{Binding MonthDisplay}" />
-                        <DataGridTextColumn Header="Overtime" Binding="{Binding Overtime}" />
+                        <DataGridTemplateColumn Header="Overtime" 
+                                                Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}}"
+                                               HorizontalAlignment="Right"
+                                               Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}}" 
+                                    />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>

@@ -1,0 +1,51 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:TimeTracker.ViewModels"
+        xmlns:views="clr-namespace:TimeTracker.Views"
+        xmlns:converter="clr-namespace:TimeTracker.Views.Converter"
+        x:DataType="viewModels:EditRecordViewModel"
+        WindowStartupLocation="CenterOwner"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
+        x:Class="TimeTracker.Views.EditRecord"
+        SizeToContent="WidthAndHeight"
+        Title="Edit Time Record">
+
+    <Window.Resources>
+        <converter:DateOnlyDateTimeConverter x:Key="DateOnlyDateTimeConverter" />
+        <converter:TimeOnlyTimeSpanConverter x:Key="TimeOnlyTimeSpanConverter" />
+    </Window.Resources>
+
+    <Grid Margin="5" RowDefinitions="Auto,Auto,Auto,Auto,Auto,10,Auto">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="0">Date:</TextBlock>
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="1">Start:</TextBlock>
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="2">End:</TextBlock>
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="4">Comment:</TextBlock>
+
+        <DatePicker VerticalAlignment="Center" Grid.Row="0" Grid.Column="1"
+                    SelectedDate="{Binding TimeRecord.Date, Converter={StaticResource DateOnlyDateTimeConverter}}" />
+        <TimePicker VerticalAlignment="Center" Grid.Row="1" Grid.Column="1" ClockIdentifier="24HourClock"  
+                    SelectedTime="{Binding TimeRecord.Start, Converter={StaticResource TimeOnlyTimeSpanConverter}}" />
+        <TimePicker VerticalAlignment="Center" Grid.Row="2" Grid.Column="1" ClockIdentifier="24HourClock"  
+                    SelectedTime="{Binding TimeRecord.End, Converter={StaticResource TimeOnlyTimeSpanConverter}}" />
+
+        <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Grid.Row="3" Grid.Column="1" Spacing="0,0,0,5">
+            <CheckBox VerticalAlignment="Center" IsChecked="{Binding TimeRecord.AllOvertime}">Overtime:</CheckBox>
+            <CheckBox VerticalAlignment="Center" IsChecked="{Binding TimeRecord.Travel}">Travel:</CheckBox>
+        </StackPanel>
+
+        <TextBox VerticalAlignment="Center" Grid.Row="4" Grid.Column="1" MinWidth="400"
+                 Text="{Binding TimeRecord.Comment}" />
+
+        <Grid Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="2" ColumnDefinitions="*,10,*">
+            <Button Grid.Column="0" Click="OnOk">OK</Button>
+            <Button Grid.Column="2" Click="OnCancel">Cancel</Button>
+        </Grid>
+    </Grid>
+</Window>

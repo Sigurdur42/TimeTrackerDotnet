@@ -22,7 +22,7 @@ public class TimeRecordSerializer
     {
         return Deserialize(File.ReadAllText(file.FullName));
     }
-    
+
     public TimeRecord[] Deserialize(string csvContent)
     {
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csvContent));
@@ -40,5 +40,11 @@ public class TimeRecordSerializer
         csv.Context.TypeConverterCache.AddConverter<bool>(new PythonBooleanConverter());
         csv.WriteRecords(records);
         return writer.ToString();
+    }
+
+    public void Serialize(FileInfo file, TimeRecord[] records)
+    {
+        var content = Serialize(records);
+        File.WriteAllText(file.FullName, content, Encoding.UTF8);
     }
 }

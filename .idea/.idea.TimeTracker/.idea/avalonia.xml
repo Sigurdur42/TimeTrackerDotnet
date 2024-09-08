@@ -4,6 +4,7 @@
     <option name="projectPerEditor">
       <map>
         <entry key="TimeTracker/App.axaml" value="TimeTracker/TimeTracker.csproj" />
+        <entry key="TimeTracker/Views/EditRecord.axaml" value="TimeTracker/TimeTracker.csproj" />
         <entry key="TimeTracker/Views/MainWindow.axaml" value="TimeTracker/TimeTracker.csproj" />
         <entry key="TimeTrackerUi/App.axaml" value="TimeTrackerUi/TimeTrackerUi.csproj" />
       </map>

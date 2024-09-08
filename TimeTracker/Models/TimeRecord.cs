@@ -112,4 +112,14 @@ public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     {
         return HashCode.Combine(Date, Start, End, AllOvertime, Comment, Travel);
     }
+    
+    public void CopyTo(TimeRecord other)
+    {
+        other.Date = Date;
+        other.Start = Start;
+        other.End = End;
+        other.Comment = Comment;
+        other.Travel = Travel;
+        other.AllOvertime = AllOvertime;
+    }
 }
