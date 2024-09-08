@@ -13,7 +13,8 @@
     <Window.Resources>
         <converter:DurationDisplayConverter x:Key="DurationDisplayConverter" />
         <converter:OvertimeDisplayConverter x:Key="OvertimeDisplayConverter" />
-        <converter:TimeSpanToBrushConverter x:Key="TimeSpanToBrushConverter" />
+        <converter:TimeSpanToBrushConverter x:Key="TimeSpanToBrushConverter" />     
+        <converter:DateOnlyDisplayConverter x:Key="DateOnlyDisplayConverter" />
     </Window.Resources>
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
@@ -93,7 +94,7 @@
                         VerticalScrollBarVisibility="Visible"
                         BorderBrush="Gray">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=dd.MM.yyyy, Mode=OneWay}" />
+                            <DataGridTextColumn Header="Date" Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter},  Mode=OneWay}" />
                             <DataGridTextColumn Header="Start" Binding="{Binding Start, StringFormat=HH:mm, Mode=OneWay}" />
                             <DataGridTextColumn Header="End" Binding="{Binding End, StringFormat=HH:mm, Mode=OneWay}" />
                             <DataGridTextColumn Header="Duration"
@@ -115,7 +116,7 @@
                         VerticalScrollBarVisibility="Visible"
                         BorderBrush="Gray">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=dd.MM.yyyy, Mode=OneWay}" />
+                            <DataGridTextColumn Header="Date" Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
                             <DataGridTextColumn Header="Duration"
                                                 Binding="{Binding Duration, Converter={StaticResource DurationDisplayConverter}, Mode=OneWay}" />
                             <DataGridTextColumn Header="Category" Binding="{Binding Category, Mode=OneWay}" />
@@ -135,7 +136,7 @@
                         VerticalScrollBarVisibility="Visible"
                         BorderBrush="Gray">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Date" Binding="{Binding Date}" />
+                            <DataGridTextColumn Header="Date" Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
                             <DataGridTemplateColumn Header="Overtime"
                                                     Width="Auto">
                                 <DataGridTemplateColumn.CellTemplate>
