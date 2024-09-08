@@ -22,6 +22,7 @@ public class MainWindowViewModel : ViewModelBase
     public ObservableCollection<TimeRecordCategorized> CategorizedData { get; } = [];
     public ObservableCollection<TimeRecordByDay> ByDayData { get; } = [];
     public ObservableCollection<TimeRecordByMonth> ByMonthData { get; } = [];
+    public ObservableCollection<TimeRecordExcel> ExcelData { get; } = [];
 
     public TimeSpan TotalOvertime
     {
@@ -75,7 +76,6 @@ public class MainWindowViewModel : ViewModelBase
     {
         Recalculate();
 
-
         var serializer = new TimeRecordSerializer();
         serializer.Serialize(new FileInfo(FileName!), RawData.ToArray());
     }
@@ -93,10 +93,14 @@ public class MainWindowViewModel : ViewModelBase
         ByDayData.Clear();
         ByDayData.AddRange(byDay.OrderByDescending(_ => _.Date));
 
-        var byMonth = calculator.CalculateByMonth(raw);
+        var byMonth = calculator.CalculateByMonth(byDay);
         ByMonthData.Clear();
         ByMonthData.AddRange(byMonth.OrderByDescending(_ => _.SortDisplay));
 
         TotalOvertime = TimeSpan.FromMinutes((double)calculator.CalculateTotalOvertime(byMonth));
+
+        var byExcel = calculator.CalculateExcel(byDay);
+        ExcelData.Clear();
+        ExcelData.AddRange(byExcel.OrderByDescending(_ => _.Date));
     }
 }

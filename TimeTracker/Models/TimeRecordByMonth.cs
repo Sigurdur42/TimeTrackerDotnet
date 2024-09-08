@@ -8,7 +8,7 @@ public partial class TimeRecordByMonth : ReactiveObject
 {
     DateOnly _date;
     decimal _overtimeMinutes;
-    decimal _totalMinutes;
+
 
     public DateOnly Date
     {
@@ -20,12 +20,6 @@ public partial class TimeRecordByMonth : ReactiveObject
     {
         get => _overtimeMinutes;
         set => this.RaiseAndSetIfChanged(ref _overtimeMinutes, value);
-    }
-
-    public decimal TotalMinutes
-    {
-        get => _totalMinutes;
-        set => this.RaiseAndSetIfChanged(ref _totalMinutes, value);
     }
 
     public TimeSpan Overtime => TimeSpan.FromMinutes((double)OvertimeMinutes);

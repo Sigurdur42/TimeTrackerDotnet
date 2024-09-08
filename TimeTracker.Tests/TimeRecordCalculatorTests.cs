@@ -79,18 +79,20 @@ public class TimeRecordCalculatorTests
     public void VerifyByMonthCalculation(string month, decimal overtime)
     {
         var target = new TimeRecordCalculator();
-        var result = target.CalculateByMonth(_data);
+        var byDay = target.CalculateByDay(_data);
+        var result = target.CalculateByMonth(byDay);
 
         var found = result.First(_ => _.MonthDisplay == month);
         Assert.That(found.OvertimeMinutes, Is.EqualTo(overtime), "overtime");
     }
 
-    [TestCase("2023.04", -65)]
+    [TestCase("2023.04", -835)]
     [TestCase("2024.01", -65)]
     public void VerifyTotalOvertimeCalculation(string date, decimal overtime)
     {
         var target = new TimeRecordCalculator();
-        var result = target.CalculateByMonth(_data);
+        var byDay = target.CalculateByDay(_data);
+        var result = target.CalculateByMonth(byDay);
 
         var filtered = result.Where(_ => string.Compare(_.SortDisplay, date, StringComparison.Ordinal) <= 0).ToArray();
         var total = target.CalculateTotalOvertime(filtered);

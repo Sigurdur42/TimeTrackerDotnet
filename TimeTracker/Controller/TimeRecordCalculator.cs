@@ -40,7 +40,7 @@ public class TimeRecordCalculator
         var byDate = timeRecords.GroupBy(_ => _.Date);
         foreach (var dateGroup in byDate)
         {
-            var first = dateGroup.First();
+            var first = dateGroup.OrderBy(_ => _.Start).First();
 
             var work = (decimal)dateGroup.Where(_ => !_.Travel).Sum(_ => _.Duration.TotalMinutes);
             var travel = (decimal)dateGroup.Where(_ => _.Travel).Sum(_ => _.Duration.TotalMinutes);
@@ -58,6 +58,9 @@ public class TimeRecordCalculator
             {
                 Date = first.Date,
                 OvertimeMinutes = total,
+                TravelMinutes = travel,
+                WorkMinutes = work,
+                Start = first.Start,
             };
 
             result.Add(record);
@@ -66,38 +69,18 @@ public class TimeRecordCalculator
         return result.ToArray();
     }
 
-    public TimeRecordByMonth[] CalculateByMonth(TimeRecord[] timeRecords)
+    public TimeRecordByMonth[] CalculateByMonth(TimeRecordByDay[] timeRecords)
     {
         var result = new List<TimeRecordByMonth>();
-        var byDate = timeRecords.GroupBy(_ => _.Month);
-        foreach (var dateGroup in byDate)
+        var byMonth = timeRecords.GroupBy(_ => _.Month);
+        foreach (var dateGroup in byMonth)
         {
             var first = dateGroup.First();
-            var overTimeTotal = 0m;
-            var total = 0m;
-
-            foreach (var dayItem in dateGroup.GroupBy(_ => _.Date))
-            {
-                var work = (decimal)dayItem.Where(_ => !_.Travel).Sum(_ => _.Duration.TotalMinutes);
-                var travel = (decimal)dayItem.Where(_ => _.Travel).Sum(_ => _.Duration.TotalMinutes);
-
-                var forceOvertime = (decimal)dayItem.Where(_ => _.AllOvertime).Sum(_ => _.Duration.TotalMinutes);
-                var totalNormal = work + travel - forceOvertime;
-
-                var overtimeForDay = first.Date.DayOfWeek switch
-                {
-                    DayOfWeek.Sunday or DayOfWeek.Saturday => totalNormal + forceOvertime,
-                    _ => totalNormal - _eightHours + forceOvertime
-                };
-                total += totalNormal + forceOvertime;
-                overTimeTotal += overtimeForDay;
-            }
-
+            var overTimeTotal = (decimal)dateGroup.Sum(_ => _.OvertimeMinutes);
             var record = new TimeRecordByMonth
             {
                 Date = first.Date,
                 OvertimeMinutes = overTimeTotal,
-                TotalMinutes = total,
             };
 
             result.Add(record);
@@ -109,5 +92,17 @@ public class TimeRecordCalculator
     public decimal CalculateTotalOvertime(IEnumerable<TimeRecordByMonth> records)
     {
         return records.Sum(_ => _.OvertimeMinutes);
+    }
+
+    public TimeRecordExcel[] CalculateExcel(TimeRecordByDay[] timeRecords)
+    {
+        return timeRecords.Select(_ => new TimeRecordExcel()
+        {
+            Date = _.Date,
+            Start = _.Start,
+            End = _.Start.AddMinutes((double)_.WorkMinutes),
+            TravelStart = _.TravelMinutes > 0 ? _.Start.AddMinutes(-1 * ((double)_.TravelMinutes / 2)) : null,
+            TravelEnd = _.TravelMinutes > 0 ? _.Start.AddMinutes(((double)_.TravelMinutes / 2)) : null,
+        }).ToArray();
     }
 }
