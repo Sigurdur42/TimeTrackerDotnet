@@ -17,7 +17,8 @@
         <!-- <SimpleTheme/> -->
 
         <!-- Theme from https://github.com/irihitech/Semi.Avalonia -->
-        <!-- <semi:SemiTheme Locale="de-de" /> -->
+        <semi:SemiTheme Locale="de-de" />
+        <StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" />
         
         <!-- Theme from https://github.com/MicroSugarDeveloperOrg/AntDesign.Avalonia/tree/main --> 
         <!-- <antDesign:AntDesign Coloring="None" IsRounded="True"/> -->
@@ -25,7 +26,7 @@
         <!-- <AntDesignColorPicker/> -->
         
         <!-- Theme from https://github.com/AvaloniaCommunity/Material.Avalonia?tab=readme-ov-file --> 
-        <material:MaterialTheme BaseTheme="Inherit" PrimaryColor="Purple" SecondaryColor="Lime" />
+        <!-- <material:MaterialTheme BaseTheme="Inherit" PrimaryColor="Purple" SecondaryColor="Lime" /> -->
         
         <Style Selector="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center" />

@@ -28,5 +28,6 @@
         <PackageReference Include="Material.Avalonia.DataGrid" Version="3.7.2" />
         <PackageReference Include="Material.Avalonia.Dialogs" Version="3.7.2" />
         <PackageReference Include="Semi.Avalonia" Version="11.1.0" />
+        <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.1.0.3" />
     </ItemGroup>
 </Project>
