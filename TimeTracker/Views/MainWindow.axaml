@@ -18,13 +18,14 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <!-- First row with browser and file name -->
-
-        <Grid>
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -51,9 +52,16 @@
 
         </Grid>
 
+        <!-- Row with overview -->
+        <StackPanel Grid.Row="2" Spacing="0,0,0,5" Orientation="Horizontal">
+            <Label>Total Overtime:</Label>
+            <TextBlock Text="{Binding TotalOvertime}" />
+        </StackPanel>
 
         <!-- Second row with data details -->
-        <TabControl Grid.Row="2" VerticalAlignment="Stretch">
+        <TabControl Grid.Row="4" VerticalAlignment="Stretch">
+
+
             <TabItem Header="Loaded Data">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -122,6 +130,27 @@
                     </DataGrid>
                 </Grid>
             </TabItem>
+            <TabItem Header="Statistics">
+                <DataGrid
+                    Grid.Column="4"
+                    VerticalAlignment="Stretch"
+                    Margin="0"
+                    ItemsSource="{Binding ByMonthData}"
+                    AutoGenerateColumns="False"
+                    IsReadOnly="True"
+                    GridLinesVisibility="All"
+                    SelectionMode="Single"
+                    BorderThickness="1"
+                    VerticalScrollBarVisibility="Visible"
+                    BorderBrush="Gray">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Date" Binding="{Binding MonthDisplay}" />
+                        <DataGridTextColumn Header="Overtime" Binding="{Binding Overtime}" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem Header="Exccel XLS"></TabItem>
+
         </TabControl>
 
     </Grid>

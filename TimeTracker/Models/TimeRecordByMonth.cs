@@ -28,5 +28,8 @@ public partial class TimeRecordByMonth : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _totalMinutes, value);
     }
 
-    [Ignore] public string MonthDisplay => $"{Date.Month:d2}.{Date.Year:d4}";
+    public TimeSpan Overtime => TimeSpan.FromMinutes((double)OvertimeMinutes);
+
+    public string MonthDisplay => $"{Date.Month:d2}.{Date.Year:d4}";
+    public string SortDisplay => $"{Date.Year:d4}.{Date.Month:d2}";
 }

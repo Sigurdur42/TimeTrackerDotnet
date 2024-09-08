@@ -14,11 +14,19 @@ namespace TimeTracker.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-    private ILocalSettings _settings;
+    private readonly ILocalSettings _settings;
+    private TimeSpan _totalOvertime;
 
     public ObservableCollection<TimeRecord> RawData { get; } = [];
     public ObservableCollection<TimeRecordCategorized> CategorizedData { get; } = [];
     public ObservableCollection<TimeRecordByDay> ByDayData { get; } = [];
+    public ObservableCollection<TimeRecordByMonth> ByMonthData { get; } = [];
+
+    public TimeSpan TotalOvertime
+    {
+        get => _totalOvertime;
+        set => this.RaiseAndSetIfChanged(ref _totalOvertime, value);
+    }
 
     public MainWindowViewModel()
     {
@@ -68,5 +76,11 @@ public class MainWindowViewModel : ViewModelBase
         var byDay = calculator.CalculateByDay(raw);
         ByDayData.Clear();
         ByDayData.AddRange(byDay.OrderByDescending(_ => _.Date));
+
+        var byMonth = calculator.CalculateByMonth(raw);
+        ByMonthData.Clear();
+        ByMonthData.AddRange(byMonth.OrderByDescending(_ => _.SortDisplay));
+
+        TotalOvertime = TimeSpan.FromMinutes((double)calculator.CalculateTotalOvertime(byMonth));
     }
 }
