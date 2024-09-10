@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using TimeTracker.Models;
 using TimeTracker.ViewModels;
 
@@ -89,11 +90,10 @@ public partial class MainWindow : Window
             dialog.Data.CopyTo(record);
             if (!editMode)
             {
-                ViewModel.RawData.Add(record);
+                ViewModel.RawData.Insert(0, record);
             }
+
             ViewModel.RecalculateAndSaveData();
-            
-            
         }
         catch (Exception e)
         {
