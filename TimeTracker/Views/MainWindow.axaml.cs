@@ -87,7 +87,13 @@ public partial class MainWindow : Window
             }
 
             dialog.Data.CopyTo(record);
+            if (!editMode)
+            {
+                ViewModel.RawData.Add(record);
+            }
             ViewModel.RecalculateAndSaveData();
+            
+            
         }
         catch (Exception e)
         {
