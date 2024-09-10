@@ -8,7 +8,7 @@ namespace TimeTracker.Controller;
 
 public class TimeOnlyConverter : DateOnlyConverter
 {
-    private readonly CultureInfo _culture = new CultureInfo("de-de");
+    private readonly CultureInfo _culture = new("de-de");
 
     public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
     {
@@ -17,13 +17,15 @@ public class TimeOnlyConverter : DateOnlyConverter
             return null;
         }
         
-        var result = DateTime.ParseExact(text, "HH:mm", _culture);
-        return TimeOnly.FromDateTime(result);
+        var parts = text.Split(':');
+        var result = new TimeOnly(int.Parse(parts[0].Trim()), int.Parse(parts[1].Trim()));
+        // var result = TimeOnly.ParseExact(text, "HH:mm", _culture);
+        return result;
     }
 
     public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
     {
-        if (value is DateOnly date)
+        if (value is TimeOnly date)
         {
             return date.ToString("HH:mm", _culture);
         }
