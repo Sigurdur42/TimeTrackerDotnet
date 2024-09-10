@@ -1,10 +1,12 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices.JavaScript;
 using CsvHelper.Configuration.Attributes;
 using ReactiveUI;
 
 namespace TimeTracker.Models;
 
+[DebuggerDisplay("{Date} - {Start} - {End} - {Duration}")]
 public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
 {
     private DateOnly _date;

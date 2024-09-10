@@ -15,7 +15,8 @@ public class OvertimeDisplayConverter : IValueConverter
             {
                 prefix = "-";
             }
-            return $"{prefix}{timeSpan:hh\\:mm}";
+
+            return timeSpan.Days > 0 ? $"{prefix}{timeSpan:dd\\:hh\\:mm}" : $"{prefix}{timeSpan:hh\\:mm}";
         }
 
         return null;

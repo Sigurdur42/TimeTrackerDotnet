@@ -44,7 +44,6 @@ public class TimeRecordCalculatorTests
     [TestCase("01.07.2024", 2 * 60 + 00)]
     [TestCase("27.01.2024", 7 * 60 + 00)]
     [TestCase("17.02.2024", 10 * 60 + 20)]
-    [TestCase("30.08.2024", -1 * (5 * 60))]
     [TestCase("29.08.2024", -1 * (50))]
     [TestCase("29.12.2023", -1 * (8 * 60))]
     [TestCase("22.12.2023", -1 * (1 * 60 + 40))]
@@ -73,9 +72,45 @@ public class TimeRecordCalculatorTests
         Assert.That(overtime, Is.EqualTo(found.OvertimeMinutes), "overtime");
     }
 
+    [TestCase("01.02.2024", "1:55")]
+    [TestCase("02.02.2024", "-3:45")]
+    [TestCase("05.02.2024", "-0:35")]
+    [TestCase("06.02.2024", "0:40")]
+    [TestCase("07.02.2024", "0:55")]
+    [TestCase("08.02.2024", "0:40")]
+    [TestCase("09.02.2024", "-1:25")]
+    [TestCase("12.02.2024", "4:59")]
+    [TestCase("13.02.2024", "0:30")]
+    [TestCase("14.02.2024", "2:00")]
+    [TestCase("15.02.2024", "2:15")]
+    [TestCase("16.02.2024", "2:45")]
+    [TestCase("17.02.2024", "10:20")]
+    [TestCase("18.02.2024", "14:00")]
+    [TestCase("19.02.2024", "0:00")]
+    [TestCase("20.02.2024", "0:00")]
+    [TestCase("21.02.2024", "5:14")]
+    [TestCase("22.02.2024", "11:00")]
+    [TestCase("23.02.2024", "-6:30")]
+    [TestCase("26.02.2024", "1:05")]
+    [TestCase("27.02.2024", "-2:00")]
+    [TestCase("28.02.2024", "1:05")]
+    [TestCase("29.02.2024", "1:20")]
+    [TestCase("30.08.2024", "-0:45")]
+    public void VerifyByDayCalculationReadable(string date, string overtimeReadable)
+    {
+        var overtime = (decimal)TimeSpan.Parse(overtimeReadable).TotalMinutes;
+        var target = new TimeRecordCalculator();
+        var result = target.CalculateByDay(_data);
+
+        var refDate = DateOnly.Parse(date, _culture);
+        var found = result.First(_ => _.Date == refDate);
+        Assert.That(found.OvertimeMinutes, Is.EqualTo(overtime), "overtime");
+    }
+
     [TestCase("07.2024", 14 * 60 + 55)]
     [TestCase("05.2024", -1 * (16 * 60 + 05))]
-    [TestCase("12.2023", -1 * (16 * 60 + 05))] // Müsste sein: +85
+    [TestCase("12.2023", -1 * (13 * 60 + 55))] 
+    [TestCase("02.2024", 46 * 60 + 28)]
     public void VerifyByMonthCalculation(string month, decimal overtime)
     {
         var target = new TimeRecordCalculator();

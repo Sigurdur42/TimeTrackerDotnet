@@ -11,7 +11,7 @@ public class DurationDisplayConverter : IValueConverter
         if (value is TimeSpan timeSpan)
         {
             var totalHours = timeSpan.TotalHours;
-            return $"{timeSpan:hh\\:mm} ({totalHours:F2})";
+            return timeSpan.Days > 0 ? $"{timeSpan:dd\\:hh\\:mm} ({totalHours:F2})" : $"{timeSpan:hh\\:mm} ({totalHours:F2})";
         }
 
         return null;

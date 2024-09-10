@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics;
 using ReactiveUI;
 
 namespace TimeTracker.Models;
 
+[DebuggerDisplay("{Date} - {Overtime}")]
 public partial class TimeRecordByDay : ReactiveObject
 {
     private DateOnly _date;

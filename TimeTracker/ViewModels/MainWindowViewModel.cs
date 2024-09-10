@@ -63,7 +63,10 @@ public class MainWindowViewModel : ViewModelBase
         RawData.Clear();
 
         var serializer = new TimeRecordSerializer();
-        var data = serializer.Deserialize(fileInfo);
+        var data = serializer.Deserialize(fileInfo)
+            .OrderByDescending(_ => _.Date)
+            .ThenByDescending(_ => _.Start)
+            .ToArray();
 
         _settings.LastDataFile = fileInfo.FullName;
         this.RaisePropertyChanged(nameof(FileName));

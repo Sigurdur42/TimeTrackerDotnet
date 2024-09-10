@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics;
 using ReactiveUI;
 
 namespace TimeTracker.Models;
 
+[DebuggerDisplay("{Date} - {Duration} - {Category}")]
 public partial class TimeRecordCategorized : ReactiveObject
 {
     DateOnly _date;
