@@ -19,7 +19,6 @@ public class TimeOnlyConverter : DateOnlyConverter
         
         var parts = text.Split(':');
         var result = new TimeOnly(int.Parse(parts[0].Trim()), int.Parse(parts[1].Trim()));
-        // var result = TimeOnly.ParseExact(text, "HH:mm", _culture);
         return result;
     }
 

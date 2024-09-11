@@ -3,7 +3,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:TimeTracker.ViewModels"
-        xmlns:views="clr-namespace:TimeTracker.Views"
         xmlns:converter="clr-namespace:TimeTracker.Views.Converter"
         x:DataType="viewModels:EditRecordViewModel"
         WindowStartupLocation="CenterOwner"
@@ -15,6 +14,7 @@
     <Window.Resources>
         <converter:DateOnlyDateTimeConverter x:Key="DateOnlyDateTimeConverter" />
         <converter:TimeOnlyTimeSpanConverter x:Key="TimeOnlyTimeSpanConverter" />
+        <converter:TimeOnlyToStringConverter x:Key="TimeOnlyToStringConverter" />
     </Window.Resources>
 
     <Grid Margin="5" RowDefinitions="Auto,Auto,Auto,Auto,Auto,10,Auto">
@@ -30,10 +30,12 @@
 
         <DatePicker VerticalAlignment="Center" Grid.Row="0" Grid.Column="1"
                     SelectedDate="{Binding TimeRecord.Date, Converter={StaticResource DateOnlyDateTimeConverter}}" />
-        <TimePicker VerticalAlignment="Center" Grid.Row="1" Grid.Column="1" ClockIdentifier="24HourClock"  
-                    SelectedTime="{Binding TimeRecord.Start, Converter={StaticResource TimeOnlyTimeSpanConverter}}" />
-        <TimePicker VerticalAlignment="Center" Grid.Row="2" Grid.Column="1" ClockIdentifier="24HourClock"  
-                    SelectedTime="{Binding TimeRecord.End, Converter={StaticResource TimeOnlyTimeSpanConverter}}" />
+        <MaskedTextBox Grid.Row="1" Grid.Column="1"
+                       Text="{Binding TimeRecord.Start, Converter={StaticResource TimeOnlyToStringConverter}}"
+                       Mask="00:00" />
+        <MaskedTextBox Grid.Row="2" Grid.Column="1"
+                       Text="{Binding TimeRecord.End, Converter={StaticResource TimeOnlyToStringConverter}}"
+                       Mask="00:00" />
 
         <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Grid.Row="3" Grid.Column="1" Spacing="0,0,0,5">
             <CheckBox VerticalAlignment="Center" IsChecked="{Binding TimeRecord.AllOvertime}">Overtime:</CheckBox>
