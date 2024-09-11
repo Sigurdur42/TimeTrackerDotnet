@@ -31,10 +31,10 @@
         <DatePicker VerticalAlignment="Center" Grid.Row="0" Grid.Column="1"
                     SelectedDate="{Binding TimeRecord.Date, Converter={StaticResource DateOnlyDateTimeConverter}}" />
         <MaskedTextBox Grid.Row="1" Grid.Column="1"
-                       Text="{Binding TimeRecord.Start, Converter={StaticResource TimeOnlyToStringConverter}}"
+                       Text="{Binding TimeRecord.Start, Converter={StaticResource TimeOnlyToStringConverter}, UpdateSourceTrigger=LostFocus}"
                        Mask="00:00" />
         <MaskedTextBox Grid.Row="2" Grid.Column="1"
-                       Text="{Binding TimeRecord.End, Converter={StaticResource TimeOnlyToStringConverter}}"
+                       Text="{Binding TimeRecord.End, Converter={StaticResource TimeOnlyToStringConverter}, UpdateSourceTrigger=LostFocus}"
                        Mask="00:00" />
 
         <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Grid.Row="3" Grid.Column="1" Spacing="0,0,0,5">

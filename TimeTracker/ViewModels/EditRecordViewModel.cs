@@ -8,6 +8,8 @@ public class EditRecordViewModel : ViewModelBase
     private readonly TimeRecord _original;
     private TimeRecord _timeRecord = new();
 
+    // TODO: Bind to Text and convert afterwards
+    
     public EditRecordViewModel(TimeRecord record, bool isEditMode)
     {
         _original = record;
