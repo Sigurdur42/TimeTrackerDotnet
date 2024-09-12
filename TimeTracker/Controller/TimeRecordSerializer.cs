@@ -13,7 +13,7 @@ public class TimeRecordSerializer
 {
     private readonly CsvConfiguration _configuration = new(new CultureInfo("de-de"))
     {
-        NewLine = Environment.NewLine,
+        NewLine = "\n",
         Encoding = Encoding.UTF8,
         HasHeaderRecord = false,
     };
