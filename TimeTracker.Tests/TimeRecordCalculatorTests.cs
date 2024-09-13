@@ -96,6 +96,21 @@ public class TimeRecordCalculatorTests
     [TestCase("28.02.2024", "1:05")]
     [TestCase("29.02.2024", "1:20")]
     [TestCase("30.08.2024", "-0:45")]
+    
+    [TestCase("01.08.2023", "-0:10")]
+    [TestCase("02.08.2023", "0:40")]
+    [TestCase("03.08.2023", "1:00")]
+    [TestCase("04.08.2023", "0:30")]
+    [TestCase("08.08.2023", "2:30")]
+    [TestCase("21.08.2023", "0:45")]
+    [TestCase("22.08.2023", "0:30")]
+    [TestCase("23.08.2023", "-1:40")]
+    [TestCase("24.08.2023", "-0:40")]
+    [TestCase("25.08.2023", "-1:40")]
+    [TestCase("28.08.2023", "1:10")]
+    [TestCase("29.08.2023", "0:35")]
+    [TestCase("30.08.2023", "0:06")]
+    
     public void VerifyByDayCalculationReadable(string date, string overtimeReadable)
     {
         var overtime = (decimal)TimeSpan.Parse(overtimeReadable).TotalMinutes;
@@ -111,6 +126,7 @@ public class TimeRecordCalculatorTests
     [TestCase("05.2024", -1 * (16 * 60 + 05))]
     [TestCase("12.2023", -1 * (13 * 60 + 55))] 
     [TestCase("02.2024", 46 * 60 + 28)]
+    [TestCase("08.2023", 3 * 60 + 21)]
     public void VerifyByMonthCalculation(string month, decimal overtime)
     {
         var target = new TimeRecordCalculator();

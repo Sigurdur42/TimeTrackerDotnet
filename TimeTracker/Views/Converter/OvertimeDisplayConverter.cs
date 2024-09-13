@@ -15,8 +15,11 @@ public class OvertimeDisplayConverter : IValueConverter
             {
                 prefix = "-";
             }
+            
+            var hours = decimal.Abs(timeSpan.Hours) + (decimal.Abs(timeSpan.Days) * 24);
+            var minutes = decimal.Abs(timeSpan.Minutes);
 
-            return timeSpan.Days > 0 ? $"{prefix}{timeSpan:dd\\:hh\\:mm}" : $"{prefix}{timeSpan:hh\\:mm}";
+            return $"{prefix}{hours:00}:{minutes:00}";
         }
 
         return null;

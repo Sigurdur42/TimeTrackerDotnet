@@ -51,7 +51,7 @@ public class TimeRecordCalculator
             var total = first.Date.DayOfWeek switch
             {
                 DayOfWeek.Sunday or DayOfWeek.Saturday => totalNormal + forceOvertime,
-                _ => totalNormal - _eightHours + forceOvertime
+                _ => forceOvertime > 0 ? forceOvertime + (totalNormal > 0 ? totalNormal - _eightHours : 0): totalNormal - _eightHours + forceOvertime
             };
 
             var record = new TimeRecordByDay

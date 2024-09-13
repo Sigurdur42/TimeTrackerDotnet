@@ -8,7 +8,9 @@ public class PythonBooleanConverter : BooleanConverter
 {
     public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
     {
-        if (text is null || text.Length == 0)
+        text = text?.Trim() ?? string.Empty;
+        
+        if (text.Length == 0 || text == "\n")
         {
             text = "false";
         }
