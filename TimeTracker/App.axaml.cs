@@ -23,6 +23,8 @@ public partial class App : Application
             {
                 DataContext = viewModel,
                 ViewModel = viewModel,
+                ShowInTaskbar = true,
+                ShowActivated = true,
             };
 
             desktop.MainWindow = window;
