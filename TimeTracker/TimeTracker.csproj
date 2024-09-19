@@ -7,6 +7,7 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <RootNamespace>TimeTracker</RootNamespace>
+        <ApplicationIcon>Assets\clock.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
