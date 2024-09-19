@@ -11,7 +11,7 @@ public class OvertimeDisplayConverterTests
     {
         var timespan = TimeSpan.Parse(timeSpanText);
         var target = new OvertimeDisplayConverter();
-        var actualOutput = target.Convert(timespan, null, null, null);
+        var actualOutput = target.Convert(timespan, null!, null, null!);
         Assert.That(actualOutput, Is.EqualTo(expectedOutput));
     }
 }

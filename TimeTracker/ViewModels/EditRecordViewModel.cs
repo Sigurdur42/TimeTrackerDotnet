@@ -9,7 +9,7 @@ public class EditRecordViewModel : ViewModelBase
     private TimeRecord _timeRecord = new();
 
     // TODO: Bind to Text and convert afterwards
-    
+
     public EditRecordViewModel(TimeRecord record, bool isEditMode)
     {
         _original = record;
@@ -22,7 +22,7 @@ public class EditRecordViewModel : ViewModelBase
         get => _timeRecord;
         set => this.RaiseAndSetIfChanged(ref _timeRecord, value);
     }
-    
+
     public TimeRecord OriginalTimeRecord => _original;
 
     public bool IsEditMode { get; set; }

@@ -12,6 +12,10 @@ public partial class EditRecord : Window
     public bool IsOk => _viewModel.IsOk;
     public TimeRecord Data => _viewModel.TimeRecord;
 
+    public EditRecord() : this(new TimeRecord(), true)
+    {
+    }
+
     public EditRecord(TimeRecord record, bool isEdit)
     {
         InitializeComponent();
@@ -22,7 +26,7 @@ public partial class EditRecord : Window
     private void OnOk(object? sender, RoutedEventArgs e)
     {
         _viewModel.IsOk = true;
-        
+
         Close(true);
     }
 

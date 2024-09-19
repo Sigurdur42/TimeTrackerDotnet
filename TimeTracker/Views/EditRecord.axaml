@@ -13,7 +13,6 @@
 
     <Window.Resources>
         <converter:DateOnlyDateTimeConverter x:Key="DateOnlyDateTimeConverter" />
-        <converter:TimeOnlyTimeSpanConverter x:Key="TimeOnlyTimeSpanConverter" />
         <converter:TimeOnlyToStringConverter x:Key="TimeOnlyToStringConverter" />
     </Window.Resources>
 
