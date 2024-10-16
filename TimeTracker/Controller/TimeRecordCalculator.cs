@@ -51,8 +51,10 @@ public class TimeRecordCalculator
             var total = first.Date.DayOfWeek switch
             {
                 DayOfWeek.Sunday or DayOfWeek.Saturday => totalNormal + forceOvertime,
-                _ => forceOvertime > 0 ? forceOvertime + (totalNormal > 0 ? totalNormal - _eightHours : 0): totalNormal - _eightHours + forceOvertime
+                _ => forceOvertime > 0 ? forceOvertime + (totalNormal > 0 ? totalNormal - _eightHours : 0) : totalNormal - _eightHours + forceOvertime
             };
+
+            var startTime = dateGroup.OrderBy(_ => _.Start).FirstOrDefault(_=>!_.Travel)?.Start ?? first.Start;
 
             var record = new TimeRecordByDay
             {
@@ -60,7 +62,7 @@ public class TimeRecordCalculator
                 OvertimeMinutes = total,
                 TravelMinutes = travel,
                 WorkMinutes = work,
-                Start = first.Start,
+                Start = startTime,
             };
 
             result.Add(record);
@@ -96,13 +98,41 @@ public class TimeRecordCalculator
 
     public TimeRecordExcel[] CalculateExcel(TimeRecordByDay[] timeRecords)
     {
-        return timeRecords.Select(_ => new TimeRecordExcel()
-        {
-            Date = _.Date,
-            Start = _.Start,
-            End = _.Start.AddMinutes((double)_.WorkMinutes),
-            TravelStart = _.TravelMinutes > 0 ? _.Start.AddMinutes(-1 * ((double)_.TravelMinutes / 2)) : null,
-            TravelEnd = _.TravelMinutes > 0 ? _.Start.AddMinutes(((double)_.TravelMinutes / 2)) : null,
-        }).ToArray();
+        return timeRecords.Select((_) =>
+            {
+                var hasWorkTime = _.WorkMinutes > 0;
+
+                TimeOnly? startTime = _.Start;
+                TimeOnly? endTime = _.Start.AddMinutes((double)_.WorkMinutes + 45);
+                var hasTravelTime = _.TravelMinutes > 0;
+                var halfTravelTime = hasTravelTime ? (double)_.TravelMinutes / 2 : 0d;
+
+                TimeOnly? travelStart = null;
+                TimeOnly? travelEnd = null;
+
+                if (!hasWorkTime && hasTravelTime)
+                {
+                    travelStart = startTime;
+                    travelEnd = startTime?.AddMinutes((double)_.TravelMinutes);
+
+                    startTime = null;
+                    endTime = null;
+                }
+                else
+                {
+                    travelStart = hasTravelTime ? startTime?.AddMinutes(-1 * halfTravelTime) : null;
+                    travelEnd = hasTravelTime ? endTime?.AddMinutes(halfTravelTime) : null;
+                }
+
+                return new TimeRecordExcel()
+                {
+                    Date = _.Date,
+                    Start = startTime,
+                    End = endTime,
+                    TravelStart = travelStart,
+                    TravelEnd = travelEnd,
+                };
+            }).ToArray();
+
     }
 }
