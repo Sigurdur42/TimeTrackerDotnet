@@ -16,7 +16,7 @@ public class TimeRecordCalculator
         var byDate = timeRecords.GroupBy(_ => _.Date);
         foreach (var dateGroup in byDate)
         {
-            var byCategory = dateGroup.GroupBy(_ => _.Category);
+            var byCategory = dateGroup.GroupBy(_ => _.Category.ToLowerInvariant());
             foreach (var item in byCategory)
             {
                 var first = item.First();
