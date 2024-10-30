@@ -6,12 +6,13 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using SukiUI.Controls;
 using TimeTracker.Models;
 using TimeTracker.ViewModels;
 
 namespace TimeTracker.Views;
 
-public partial class MainWindow : Window
+public partial class MainWindow : SukiWindow
 {
     internal MainWindowViewModel ViewModel { get; init; } = null!;
 

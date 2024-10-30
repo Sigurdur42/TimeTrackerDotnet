@@ -8,27 +8,32 @@
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <RootNamespace>TimeTracker</RootNamespace>
         <ApplicationIcon>Assets\clock.ico</ApplicationIcon>
+        <FileVersion>2.0.0.0</FileVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <Version>2.0-Beta1</Version>
     </PropertyGroup>
-
     <ItemGroup>
-        <AvaloniaResource Include="Assets\**"/>
+        <AvaloniaResource Include="Assets\**" />
     </ItemGroup>
-
     <ItemGroup>
-        <PackageReference Include="AntDesign.Avalonia" Version="11.0.0" />
-        <PackageReference Include="Avalonia" Version="11.1.0"/>
-        <PackageReference Include="Avalonia.Desktop" Version="11.1.0"/>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.1.0"/>
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.1.0"/>
-        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.1.0"/>
-        <PackageReference Include="Avalonia.ReactiveUI" Version="11.1.0"/>
-        <PackageReference Include="Config.Net.Yaml" Version="5.2.0" />
-        <PackageReference Include="CsvHelper" Version="33.0.1" />
-        <PackageReference Include="Material.Avalonia" Version="3.7.2" />
-        <PackageReference Include="Material.Avalonia.DataGrid" Version="3.7.2" />
-        <PackageReference Include="Material.Avalonia.Dialogs" Version="3.7.2" />
-        <PackageReference Include="Semi.Avalonia" Version="11.1.0" />
-        <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.1.0.3" />
+        <!-- <PackageReference Include="AntDesign.Avalonia" Version="11.0.0" /> -->
+        <PackageReference Include="Avalonia"
+                          Version="11.2.0-rc2" />
+        <PackageReference Include="Avalonia.Desktop"
+                          Version="11.2.0-rc2" />
+        <PackageReference Include="Avalonia.Fonts.Inter"
+                          Version="11.2.0-rc2" />
+        <!-- Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration. -->
+        <PackageReference Condition="'$(Configuration)' == 'Debug'"
+                          Include="Avalonia.Diagnostics"
+                          Version="11.2.0-rc2" />
+        <PackageReference Include="Avalonia.ReactiveUI"
+                          Version="11.2.0-rc2" />
+        <PackageReference Include="Config.Net.Yaml"
+                          Version="5.2.0" />
+        <PackageReference Include="CsvHelper"
+                          Version="33.0.1" />
+        <PackageReference Include="SukiUI"
+                          Version="6.0.0-rc" />
     </ItemGroup>
 </Project>

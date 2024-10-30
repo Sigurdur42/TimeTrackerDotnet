@@ -2,40 +2,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TimeTracker.App"
              xmlns:local="using:TimeTracker"
-             xmlns:material="clr-namespace:Material.Styles.Themes;assembly=Material.Styles"
-             xmlns:antDesign="clr-namespace:AntDesign;assembly=AntDesign"
-             xmlns:semi="https://irihi.tech/semi"
-             RequestedThemeVariant="Default">
+             xmlns:sukiUi="clr-namespace:SukiUI;assembly=SukiUI"
+             RequestedThemeVariant="Dark">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
-
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
-
     <Application.Styles>
         <!-- <FluentTheme /> -->
         <!-- <SimpleTheme/> -->
-
+        <!-- Taken from here: https://kikipoulet.github.io/SukiUI/documentation/getting-started/launch.html -->
+        <sukiUi:SukiTheme ThemeColor="Blue" />
         <!-- Theme from https://github.com/irihitech/Semi.Avalonia -->
-        <semi:SemiTheme Locale="de-de" />
-        <StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" />
-        
-        <!-- Theme from https://github.com/MicroSugarDeveloperOrg/AntDesign.Avalonia/tree/main --> 
+        <!-- <semi:SemiTheme Locale="de-de" />
+        <StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" /> -->
+        <!-- Theme from https://github.com/MicroSugarDeveloperOrg/AntDesign.Avalonia/tree/main -->
         <!-- <antDesign:AntDesign Coloring="None" IsRounded="True"/> -->
         <!-- <AntDesignDataGrid/> -->
         <!-- <AntDesignColorPicker/> -->
-        
-        <!-- Theme from https://github.com/AvaloniaCommunity/Material.Avalonia?tab=readme-ov-file --> 
+        <!-- Theme from https://github.com/AvaloniaCommunity/Material.Avalonia?tab=readme-ov-file -->
         <!-- <material:MaterialTheme BaseTheme="Inherit" PrimaryColor="Purple" SecondaryColor="Lime" /> -->
-        
         <Style Selector="TextBlock">
-            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment"
+                    Value="Center" />
         </Style>
         <Style Selector="Label">
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>        
+            <Setter Property="VerticalAlignment"
+                    Value="Center" />
+        </Style>
         <Style Selector="Button">
-            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment"
+                    Value="Center" />
         </Style>
     </Application.Styles>
 </Application>

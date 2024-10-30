@@ -1,15 +1,18 @@
-<Window xmlns="https://github.com/avaloniaui"
+<sukiUi:SukiWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:TimeTracker.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:converter="clr-namespace:TimeTracker.Views.Converter"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d"
+        d:DesignWidth="800"
+        d:DesignHeight="450"
         x:Class="TimeTracker.Views.MainWindow"
+        xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/clock.ico"
+        BackgroundStyle="Bubble"
         Title="TimeTracker">
-
     <Window.Resources>
         <converter:DurationDisplayConverter x:Key="DurationDisplayConverter" />
         <converter:OvertimeDisplayConverter x:Key="OvertimeDisplayConverter" />
@@ -21,7 +24,6 @@
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel />
     </Design.DataContext>
-
     <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -30,7 +32,6 @@
             <RowDefinition Height="5" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-
         <!-- First row with browser and file name -->
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
@@ -38,39 +39,57 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-
-            <Label Grid.Row="0" Grid.Column="0">Data File:</Label>
-            <Button Grid.Row="0" Grid.Column="2" Click="OnBrowseButtonClick" Margin="5,0,5,0">Load data file...</Button>
-            <TextBlock Grid.Row="0" Grid.Column="1" Margin="5,0,5,0"
+            <Label Grid.Row="0"
+                   Grid.Column="0">Data File:</Label>
+            <Button Grid.Row="0"
+                    Grid.Column="2"
+                    Click="OnBrowseButtonClick"
+                    Margin="5,0,5,0">Load data file...</Button>
+            <TextBlock Grid.Row="0"
+                       Grid.Column="1"
+                       Margin="5,0,5,0"
                        Text="{Binding FileName, FallbackValue='Wait a second'}" />
-
-            <Label Grid.Row="1" Grid.Column="0">Records:</Label>
-            <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" ColumnDefinitions="*,*,*">
-                <Button Grid.Row="0" Grid.Column="0" HorizontalAlignment="Stretch" Margin="5,0,0,0" Click="OnNewRecord">New Record...</Button>
-                <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" Margin="5,0,5,0"
-                        Click="OnEditRecord">
+            <Label Grid.Row="1"
+                   Grid.Column="0">Records:</Label>
+            <Grid Grid.Row="1"
+                  Grid.Column="1"
+                  Grid.ColumnSpan="2"
+                  ColumnDefinitions="*,*,*">
+                <Button Grid.Row="0"
+                        Grid.Column="0"
+                        HorizontalAlignment="Stretch"
+                        Margin="5,0,0,0"
+                        Click="OnNewRecord">New Record...</Button>
+                <Button Grid.Row="0"
+                        Grid.Column="1"
+                        HorizontalAlignment="Stretch"
+                        Margin="5,0,5,0"
+                        Click="OnEditRecord">                    
                     Edit...
                 </Button>
-                <Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Stretch" Margin="5,0,5,0" IsEnabled="False">Delete...</Button>
+                <Button Grid.Row="0"
+                        Grid.Column="2"
+                        HorizontalAlignment="Stretch"
+                        Margin="5,0,5,0"
+                        IsEnabled="False">Delete...</Button>
             </Grid>
-
         </Grid>
-
         <!-- Row with overview -->
-        <StackPanel Grid.Row="2" Spacing="0,0,0,5" Orientation="Horizontal">
+        <StackPanel Grid.Row="2"
+                    Spacing="0,0,0,5"
+                    Orientation="Horizontal">
             <Label>Total Overtime:</Label>
             <TextBlock Text="{Binding TotalOvertime, Converter={StaticResource OvertimeDisplayConverter}}"
                        Foreground="{Binding TotalOvertime, Converter={StaticResource TimeSpanToBrushConverter}}" />
         </StackPanel>
-
         <!-- Second row with data details -->
-        <TabControl Grid.Row="4" VerticalAlignment="Stretch">
+        <TabControl Grid.Row="4"
+                    VerticalAlignment="Stretch">
             <TabItem Header="Loaded Data">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -80,64 +99,61 @@
                         <ColumnDefinition Width="5" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-
-                    <DataGrid
-                        VerticalAlignment="Stretch"
-                        Margin="0"
-                        ItemsSource="{Binding RawData}"
-                        AutoGenerateColumns="False"
-                        IsReadOnly="True"
-                        GridLinesVisibility="All"
-                        SelectionMode="Single"
-                        BorderThickness="1"
-                        SelectedItem="{Binding SelectedDaiy}"
-                        VerticalScrollBarVisibility="Visible"
-                        BorderBrush="Gray">
+                    <DataGrid VerticalAlignment="Stretch"
+                              Margin="0"
+                              ItemsSource="{Binding RawData}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              GridLinesVisibility="All"
+                              SelectionMode="Single"
+                              BorderThickness="1"
+                              SelectedItem="{Binding SelectedDaiy}"
+                              VerticalScrollBarVisibility="Visible"
+                              BorderBrush="Gray">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date"
                                                 Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter},  Mode=OneWay}" />
                             <DataGridTextColumn Header="Start"
                                                 Binding="{Binding Start, StringFormat=HH:mm, Mode=OneWay}" />
-                            <DataGridTextColumn Header="End" Binding="{Binding End, StringFormat=HH:mm, Mode=OneWay}" />
+                            <DataGridTextColumn Header="End"
+                                                Binding="{Binding End, StringFormat=HH:mm, Mode=OneWay}" />
                             <DataGridTextColumn Header="Duration"
                                                 Binding="{Binding Duration, Converter={StaticResource DurationDisplayConverter}, Mode=OneWay}" />
-                            <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" />
+                            <DataGridTextColumn Header="Comment"
+                                                Binding="{Binding Comment}" />
                         </DataGrid.Columns>
                     </DataGrid>
-
-                    <DataGrid
-                        Grid.Column="2"
-                        VerticalAlignment="Stretch"
-                        Margin="0"
-                        ItemsSource="{Binding CategorizedData}"
-                        AutoGenerateColumns="False"
-                        IsReadOnly="True"
-                        GridLinesVisibility="All"
-                        SelectionMode="Single"
-                        BorderThickness="1"
-                        VerticalScrollBarVisibility="Visible"
-                        BorderBrush="Gray">
+                    <DataGrid Grid.Column="2"
+                              VerticalAlignment="Stretch"
+                              Margin="0"
+                              ItemsSource="{Binding CategorizedData}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              GridLinesVisibility="All"
+                              SelectionMode="Single"
+                              BorderThickness="1"
+                              VerticalScrollBarVisibility="Visible"
+                              BorderBrush="Gray">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date"
                                                 Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
                             <DataGridTextColumn Header="Duration"
                                                 Binding="{Binding Duration, Converter={StaticResource DurationDisplayConverter}, Mode=OneWay}" />
-                            <DataGridTextColumn Header="Category" Binding="{Binding Category, Mode=OneWay}" />
+                            <DataGridTextColumn Header="Category"
+                                                Binding="{Binding Category, Mode=OneWay}" />
                         </DataGrid.Columns>
                     </DataGrid>
-
-                    <DataGrid
-                        Grid.Column="4"
-                        VerticalAlignment="Stretch"
-                        Margin="0"
-                        ItemsSource="{Binding ByDayData}"
-                        AutoGenerateColumns="False"
-                        IsReadOnly="True"
-                        GridLinesVisibility="All"
-                        SelectionMode="Single"
-                        BorderThickness="1"
-                        VerticalScrollBarVisibility="Visible"
-                        BorderBrush="Gray">
+                    <DataGrid Grid.Column="4"
+                              VerticalAlignment="Stretch"
+                              Margin="0"
+                              ItemsSource="{Binding ByDayData}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              GridLinesVisibility="All"
+                              SelectionMode="Single"
+                              BorderThickness="1"
+                              VerticalScrollBarVisibility="Visible"
+                              BorderBrush="Gray">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date"
                                                 Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
@@ -145,10 +161,9 @@
                                                     Width="Auto">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock
-                                            Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}, Mode=OneWay}"
-                                            Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}, Mode=OneWay}"
-                                            HorizontalAlignment="Right" />
+                                        <TextBlock Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}, Mode=OneWay}"
+                                                   Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}, Mode=OneWay}"
+                                                   HorizontalAlignment="Right" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -157,28 +172,27 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Statistics">
-                <DataGrid
-                    Grid.Column="0"
-                    VerticalAlignment="Stretch"
-                    Margin="0"
-                    ItemsSource="{Binding ByMonthData}"
-                    AutoGenerateColumns="False"
-                    IsReadOnly="True"
-                    GridLinesVisibility="All"
-                    SelectionMode="Single"
-                    BorderThickness="1"
-                    VerticalScrollBarVisibility="Visible"
-                    BorderBrush="Gray">
+                <DataGrid Grid.Column="0"
+                          VerticalAlignment="Stretch"
+                          Margin="0"
+                          ItemsSource="{Binding ByMonthData}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          GridLinesVisibility="All"
+                          SelectionMode="Single"
+                          BorderThickness="1"
+                          VerticalScrollBarVisibility="Visible"
+                          BorderBrush="Gray">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Date" Binding="{Binding MonthDisplay}" />
+                        <DataGridTextColumn Header="Date"
+                                            Binding="{Binding MonthDisplay}" />
                         <DataGridTemplateColumn Header="Overtime"
                                                 Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock
-                                        Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}}"
-                                        HorizontalAlignment="Right"
-                                        Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}}" />
+                                    <TextBlock Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}}"
+                                               HorizontalAlignment="Right"
+                                               Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}}" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -186,30 +200,31 @@
                 </DataGrid>
             </TabItem>
             <TabItem Header="Exccel XLS">
-                <DataGrid
-                    Grid.Column="0"
-                    VerticalAlignment="Stretch"
-                    Margin="0"
-                    ItemsSource="{Binding ExcelData}"
-                    AutoGenerateColumns="False"
-                    IsReadOnly="True"
-                    GridLinesVisibility="All"
-                    SelectionMode="Single"
-                    BorderThickness="1"
-                    VerticalScrollBarVisibility="Visible"
-                    BorderBrush="Gray">
+                <DataGrid Grid.Column="0"
+                          VerticalAlignment="Stretch"
+                          Margin="0"
+                          ItemsSource="{Binding ExcelData}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          GridLinesVisibility="All"
+                          SelectionMode="Single"
+                          BorderThickness="1"
+                          VerticalScrollBarVisibility="Visible"
+                          BorderBrush="Gray">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Date" Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
-                        <DataGridTextColumn Header="Start" Binding="{Binding Start, StringFormat=HH:mm, Mode=OneWay}" />
-                        <DataGridTextColumn Header="End" Binding="{Binding End, StringFormat=HH:mm, Mode=OneWay}" />
-                        <DataGridTextColumn Header="TravelStart" Binding="{Binding TravelStart, StringFormat=HH:mm, Mode=OneWay}" />
-                        <DataGridTextColumn Header="TravelEnd" Binding="{Binding TravelEnd, StringFormat=HH:mm, Mode=OneWay}" />
+                        <DataGridTextColumn Header="Date"
+                                            Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
+                        <DataGridTextColumn Header="Start"
+                                            Binding="{Binding Start, StringFormat=HH:mm, Mode=OneWay}" />
+                        <DataGridTextColumn Header="End"
+                                            Binding="{Binding End, StringFormat=HH:mm, Mode=OneWay}" />
+                        <DataGridTextColumn Header="TravelStart"
+                                            Binding="{Binding TravelStart, StringFormat=HH:mm, Mode=OneWay}" />
+                        <DataGridTextColumn Header="TravelEnd"
+                                            Binding="{Binding TravelEnd, StringFormat=HH:mm, Mode=OneWay}" />
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>
-
         </TabControl>
-
     </Grid>
-
-</Window>
+</sukiUi:SukiWindow>

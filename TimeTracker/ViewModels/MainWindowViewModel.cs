@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Drawing.Design;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Avalonia.Controls;
 using Config.Net;
 using DynamicData;
@@ -38,6 +39,13 @@ public class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
+            var version = GetType()?.Assembly?.GetName()?.Version?.ToString() ?? "";
+            var informational = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? version;
+            informational = informational.Split("+")[0];
+
+            ApplicationTitle = $"TimeTracker - V{informational}";
+
+
         var special = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var path = Path.Combine(special, "TimeTracker", "TimeTrackerSettings.json");
         _settings = new ConfigurationBuilder<ILocalSettings>()
@@ -51,7 +59,11 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
+    
+
     public string? FileName => _settings.LastDataFile;
+
+    public string ApplicationTitle { get; }
 
     public void LoadDataFile(FileInfo fileInfo)
     {
