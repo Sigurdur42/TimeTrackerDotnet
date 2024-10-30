@@ -11,7 +11,7 @@
         xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/clock.ico"
-        BackgroundStyle="Bubble"
+        BackgroundStyle="Flat"
         Title="{Binding ApplicationTitle}">
     <Window.Resources>
         <converter:DurationDisplayConverter x:Key="DurationDisplayConverter" />
