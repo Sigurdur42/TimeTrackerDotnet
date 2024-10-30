@@ -3,7 +3,7 @@
              x:Class="TimeTracker.App"
              xmlns:local="using:TimeTracker"
              xmlns:sukiUi="clr-namespace:SukiUI;assembly=SukiUI"
-             RequestedThemeVariant="Dark">
+             RequestedThemeVariant="Default">
     <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
     <Application.DataTemplates>
         <local:ViewLocator />
