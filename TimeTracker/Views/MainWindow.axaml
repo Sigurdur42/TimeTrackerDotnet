@@ -12,7 +12,7 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/clock.ico"
         BackgroundStyle="Bubble"
-        Title="TimeTracker">
+        Title="{Binding ApplicationTitle}">
     <Window.Resources>
         <converter:DurationDisplayConverter x:Key="DurationDisplayConverter" />
         <converter:OvertimeDisplayConverter x:Key="OvertimeDisplayConverter" />
