@@ -1,4 +1,4 @@
-<sukiUi:SukiWindow xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:TimeTracker.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -8,10 +8,8 @@
         d:DesignWidth="800"
         d:DesignHeight="450"
         x:Class="TimeTracker.Views.MainWindow"
-        xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/clock.ico"
-        BackgroundStyle="Flat"
         Title="{Binding ApplicationTitle}">
     <Window.Resources>
         <converter:DurationDisplayConverter x:Key="DurationDisplayConverter" />
@@ -227,4 +225,4 @@
             </TabItem>
         </TabControl>
     </Grid>
-</sukiUi:SukiWindow>
+</Window>

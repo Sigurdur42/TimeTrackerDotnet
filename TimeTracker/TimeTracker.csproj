@@ -8,9 +8,9 @@
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <RootNamespace>TimeTracker</RootNamespace>
         <ApplicationIcon>Assets\clock.ico</ApplicationIcon>
-        <FileVersion>2.0.0.0</FileVersion>
-        <AssemblyVersion>2.0.0.0</AssemblyVersion>
-        <Version>2.0-Beta1</Version>
+        <FileVersion>2.0.2.0</FileVersion>
+        <AssemblyVersion>2.0.2.0</AssemblyVersion>
+        <Version>2.0-Beta2</Version>
     </PropertyGroup>
     <ItemGroup>
         <AvaloniaResource Include="Assets\**" />
@@ -33,7 +33,8 @@
                           Version="5.2.0" />
         <PackageReference Include="CsvHelper"
                           Version="33.0.1" />
-        <PackageReference Include="SukiUI"
-                          Version="6.0.0-rc" />
+        <PackageReference Include="Semi.Avalonia" Version="11.2.0-beta1" />
+        <PackageReference Include="Semi.Avalonia.DataGrid" Version="11.1.0.5-beta1" />
+
     </ItemGroup>
 </Project>
