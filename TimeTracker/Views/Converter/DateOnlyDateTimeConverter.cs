@@ -10,7 +10,7 @@ public class DateOnlyDateTimeConverter : IValueConverter
     {
         if (value is DateOnly dateOnly)
         {
-            return new DateTimeOffset(new DateTime(dateOnly.Year, dateOnly.Month, dateOnly.Day));
+            return new DateTime(dateOnly.Year, dateOnly.Month, dateOnly.Day);
         }
 
         return null;
@@ -18,9 +18,9 @@ public class DateOnlyDateTimeConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is DateTimeOffset date)
+        if (value is DateTime date)
         {
-            return DateOnly.FromDateTime(date.DateTime);
+            return DateOnly.FromDateTime(date);
         }
 
         throw new NotImplementedException();
