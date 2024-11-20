@@ -1,13 +1,12 @@
 using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices.JavaScript;
 using CsvHelper.Configuration.Attributes;
 using ReactiveUI;
 
 namespace TimeTracker.Models;
 
 [DebuggerDisplay("{Date} - {Start} - {End} - {Duration}")]
-public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
+public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
 {
     private DateOnly _date;
     private TimeOnly _start;
@@ -69,6 +68,12 @@ public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
             if (comment is null || comment.Length == 0)
             {
                 return "";
+            }
+
+            if (comment.StartsWith("gmk", StringComparison.InvariantCultureIgnoreCase))
+            {
+                // GMK shall not be summarized as it needs to be stated separately
+                return comment;
             }
 
             var index = comment.IndexOf(':');

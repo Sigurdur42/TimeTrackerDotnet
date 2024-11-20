@@ -93,7 +93,7 @@ public class TimeRecordCalculator
 
     public decimal CalculateTotalOvertime(IEnumerable<TimeRecordByMonth> records)
     {
-        return records.Sum(_ => _.OvertimeMinutes);
+        return records.Sum(m => m.OvertimeMinutes);
     }
 
     public TimeRecordExcel[] CalculateExcel(TimeRecordByDay[] timeRecords)
