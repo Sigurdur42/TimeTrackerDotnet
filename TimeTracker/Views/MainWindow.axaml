@@ -43,38 +43,52 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Label Grid.Row="0"
-                   Grid.Column="0">Data File:</Label>
+                   Grid.Column="0">
+                Data File:
+            </Label>
             <Button Grid.Row="0"
                     Grid.Column="2"
                     Click="OnBrowseButtonClick"
-                    Margin="5,0,5,0">Load data file...</Button>
+                    Classes="Small"
+                    Margin="5,0,5,5">
+                Load data file...
+            </Button>
             <TextBlock Grid.Row="0"
                        Grid.Column="1"
                        Margin="5,0,5,0"
                        Text="{Binding FileName, FallbackValue='Wait a second'}" />
             <Label Grid.Row="1"
-                   Grid.Column="0">Records:</Label>
+                   Grid.Column="0">
+                Records:
+            </Label>
             <Grid Grid.Row="1"
                   Grid.Column="1"
                   Grid.ColumnSpan="2"
                   ColumnDefinitions="*,*,*">
                 <Button Grid.Row="0"
                         Grid.Column="0"
+                        Classes="Small"
                         HorizontalAlignment="Stretch"
                         Margin="5,0,0,0"
-                        Click="OnNewRecord">New Record...</Button>
+                        Click="OnNewRecord">
+                    New Record...
+                </Button>
                 <Button Grid.Row="0"
                         Grid.Column="1"
+                        Classes="Small"
                         HorizontalAlignment="Stretch"
                         Margin="5,0,5,0"
-                        Click="OnEditRecord">                    
+                        Click="OnEditRecord">
                     Edit...
                 </Button>
                 <Button Grid.Row="0"
                         Grid.Column="2"
+                        Classes="Small"
                         HorizontalAlignment="Stretch"
                         Margin="5,0,5,0"
-                        IsEnabled="False">Delete...</Button>
+                        IsEnabled="False">
+                    Delete...
+                </Button>
             </Grid>
         </Grid>
         <!-- Row with overview -->
@@ -159,9 +173,10 @@
                                                     Width="Auto">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}, Mode=OneWay}"
-                                                   Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}, Mode=OneWay}"
-                                                   HorizontalAlignment="Right" />
+                                        <TextBlock
+                                            Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}, Mode=OneWay}"
+                                            Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}, Mode=OneWay}"
+                                            HorizontalAlignment="Right" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -188,9 +203,10 @@
                                                 Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}}"
-                                               HorizontalAlignment="Right"
-                                               Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}}" />
+                                    <TextBlock
+                                        Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}}"
+                                        HorizontalAlignment="Right"
+                                        Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}}" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
