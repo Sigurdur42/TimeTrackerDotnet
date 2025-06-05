@@ -14,7 +14,7 @@ public class TimeRecordTests
     [TestCase("DUNA: Travel", "DUNA")]
     [TestCase("DUNA", "DUNA")]
     [TestCase("DUNA ", "DUNA")]
-    public void CategoryTests(string comment, string expectedCategory)
+    public void CategoryTests(string? comment, string expectedCategory)
     {
         var target = new TimeRecord
         {
