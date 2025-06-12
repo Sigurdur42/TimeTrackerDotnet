@@ -15,7 +15,7 @@
                   https://docs.irihi.tech/semi/en/docs/introduction/-->
         <semi:SemiTheme Locale="de-DE" />
         <StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" />
-      
+
         <Style Selector="TextBlock">
             <Setter Property="VerticalAlignment"
                     Value="Center" />
