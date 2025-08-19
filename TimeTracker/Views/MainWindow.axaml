@@ -213,7 +213,7 @@
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>
-            <TabItem Header="Exccel XLS">
+            <TabItem Header="Excel XLS">
                 <DataGrid Grid.Column="0"
                           VerticalAlignment="Stretch"
                           Margin="0"

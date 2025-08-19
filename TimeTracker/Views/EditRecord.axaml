@@ -46,8 +46,8 @@
                  Text="{Binding TimeRecord.Comment}" />
 
         <Grid Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="2" ColumnDefinitions="*,10,*">
-            <Button Grid.Column="0" Click="OnOk">OK</Button>
-            <Button Grid.Column="2" Click="OnCancel">Cancel</Button>
+            <Button Grid.Column="0" Click="OnOk" Classes="Small">OK</Button>
+            <Button Grid.Column="2" Click="OnCancel" Classes="Small">Cancel</Button>
         </Grid>
     </Grid>
 </Window>
