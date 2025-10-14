@@ -15,7 +15,7 @@ public class TimeRecordSerializer
     {
         NewLine = "\n",
         Encoding = Encoding.UTF8,
-        HasHeaderRecord = false,
+        HasHeaderRecord = false
     };
 
     public TimeRecord[] Deserialize(FileInfo file)
@@ -30,8 +30,8 @@ public class TimeRecordSerializer
 
         using var csv = new CsvReader(reader, _configuration);
         csv.Context.TypeConverterCache.AddConverter<bool>(new PythonBooleanConverter());
-        csv.Context.TypeConverterCache.AddConverter<TimeOnly>(new TimeOnlyConverter()); 
-       return csv.GetRecords<TimeRecord>().ToArray();
+        csv.Context.TypeConverterCache.AddConverter<TimeOnly>(new TimeOnlyConverter());
+        return csv.GetRecords<TimeRecord>().ToArray();
     }
 
     public string Serialize(TimeRecord[] records)
@@ -39,7 +39,7 @@ public class TimeRecordSerializer
         using var writer = new StringWriter();
         using var csv = new CsvWriter(writer, _configuration);
         csv.Context.TypeConverterCache.AddConverter<bool>(new PythonBooleanConverter());
-        csv.Context.TypeConverterCache.AddConverter<TimeOnly>(new TimeOnlyConverter()); 
+        csv.Context.TypeConverterCache.AddConverter<TimeOnly>(new TimeOnlyConverter());
         csv.WriteRecords(records);
         return writer.ToString();
     }

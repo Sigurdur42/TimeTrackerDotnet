@@ -10,10 +10,7 @@ public class TimeOnlyToStringConverter : IValueConverter
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is TimeOnly timeOnly)
-        {
-            return timeOnly.ToString("HH:mm", _culture);
-        }
+        if (value is TimeOnly timeOnly) return timeOnly.ToString("HH:mm", _culture);
 
         return null;
     }

@@ -5,7 +5,7 @@ using ReactiveUI;
 namespace TimeTracker.Models;
 
 [DebuggerDisplay("{Date} - {Overtime}")]
-public partial class TimeRecordByDay : ReactiveObject
+public class TimeRecordByDay : ReactiveObject
 {
     private DateOnly _date;
     private decimal _overtimeMinutes;

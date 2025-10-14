@@ -5,12 +5,12 @@ using ReactiveUI;
 namespace TimeTracker.Models;
 
 [DebuggerDisplay("{Date} - {Duration} - {Category}")]
-public partial class TimeRecordCategorized : ReactiveObject
+public class TimeRecordCategorized : ReactiveObject
 {
-    DateOnly _date;
-    decimal _workMinutes;
-    decimal _travelMinutes;
-    string? _category;
+    private string? _category;
+    private DateOnly _date;
+    private decimal _travelMinutes;
+    private decimal _workMinutes;
 
     public DateOnly Date
     {
@@ -35,6 +35,6 @@ public partial class TimeRecordCategorized : ReactiveObject
         get => _category;
         set => this.RaiseAndSetIfChanged(ref _category, value);
     }
-    
+
     public TimeSpan Duration => TimeSpan.FromMinutes((double)(TravelMinutes + WorkMinutes));
 }

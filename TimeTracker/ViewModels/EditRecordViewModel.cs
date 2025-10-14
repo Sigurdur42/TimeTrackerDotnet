@@ -5,15 +5,14 @@ namespace TimeTracker.ViewModels;
 
 public class EditRecordViewModel : ViewModelBase
 {
-    private readonly TimeRecord _original;
     private TimeRecord _timeRecord = new();
 
     // TODO: Bind to Text and convert afterwards
 
     public EditRecordViewModel(TimeRecord record, bool isEditMode)
     {
-        _original = record;
-        _original.CopyTo(_timeRecord);
+        OriginalTimeRecord = record;
+        OriginalTimeRecord.CopyTo(_timeRecord);
         IsEditMode = isEditMode;
     }
 
@@ -23,7 +22,7 @@ public class EditRecordViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _timeRecord, value);
     }
 
-    public TimeRecord OriginalTimeRecord => _original;
+    public TimeRecord OriginalTimeRecord { get; }
 
     public bool IsEditMode { get; set; }
     public bool IsOk { get; set; }

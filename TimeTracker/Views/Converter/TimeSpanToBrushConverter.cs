@@ -3,7 +3,6 @@ using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 
-
 namespace TimeTracker.Views.Converter;
 
 public class TimeSpanToBrushConverter : IValueConverter

@@ -25,7 +25,6 @@ public class TimeRecordTests
         Assert.That(result, Is.EqualTo(expectedCategory));
     }
 
-
     [TestCase("01.01.2024", "01.2024")]
     [TestCase("31.01.2024", "01.2024")]
     public void MonthTests(string date, string expectedMonth)
@@ -40,7 +39,6 @@ public class TimeRecordTests
         Assert.That(expectedMonth, Is.EqualTo(result));
     }
 
-
     [TestCase("09:00", "12:00", "3:00")]
     [TestCase("06:00", "12:50", "6:50")]
     [TestCase("06:00", "16:30", "10:30")]
@@ -52,7 +50,7 @@ public class TimeRecordTests
         var target = new TimeRecord
         {
             Start = TimeOnly.Parse(start),
-            End = TimeOnly.Parse(end),
+            End = TimeOnly.Parse(end)
         };
         var duration = target.Duration;
         Assert.That(TimeSpan.Parse(expectedDuration), Is.EqualTo(duration));

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using Avalonia.Threading;
 using TimeTracker.Models;
 using TimeTracker.ViewModels;
 
@@ -13,30 +12,26 @@ namespace TimeTracker.Views;
 
 public partial class MainWindow : Window
 {
-    internal MainWindowViewModel ViewModel { get; init; } = null!;
-
     public MainWindow()
     {
         InitializeComponent();
     }
+
+    internal MainWindowViewModel ViewModel { get; init; } = null!;
 
     private async void OnBrowseButtonClick(object? sender, RoutedEventArgs e)
     {
         var storageProvider = StorageProvider;
 
         // Create an OpenFilePickerOptions instance
-        var options = new FilePickerOpenOptions()
+        var options = new FilePickerOpenOptions
         {
             AllowMultiple = false,
-            Title = "Select Sata File",
+            Title = "Select Sata File"
         };
-        // options.FileTypeFilter.Add(new() { Name = "Data Files", Extensions = { "csv" } });
 
         var result = await storageProvider.OpenFilePickerAsync(options);
-        if (!result.Any())
-        {
-            return;
-        }
+        if (!result.Any()) return;
 
         var selectedFile = result[0];
         try
@@ -61,11 +56,11 @@ public partial class MainWindow : Window
         var now = DateTime.Now;
         var last = ViewModel.RawData?.FirstOrDefault();
         var lastTime = last?.End ?? TimeOnly.FromDateTime(now);
-        var newRecord = new TimeRecord()
+        var newRecord = new TimeRecord
         {
             Date = DateOnly.FromDateTime(now),
             Start = lastTime,
-            End = lastTime,
+            End = lastTime
         };
 
         await ShowEditRecord(false, newRecord);
@@ -73,25 +68,16 @@ public partial class MainWindow : Window
 
     private async Task ShowEditRecord(bool editMode, TimeRecord? record)
     {
-        if (record is null)
-        {
-            return;
-        }
+        if (record is null) return;
 
         try
         {
             var dialog = new EditRecord(record, editMode);
             await dialog.ShowDialog(this);
-            if (!dialog.IsOk)
-            {
-                return;
-            }
+            if (!dialog.IsOk) return;
 
             dialog.Data.CopyTo(record);
-            if (!editMode)
-            {
-                ViewModel.RawData.Insert(0, record);
-            }
+            if (!editMode) ViewModel.RawData.Insert(0, record);
 
             ViewModel.RecalculateAndSaveData();
         }

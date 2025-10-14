@@ -7,7 +7,7 @@ namespace TimeTracker.Controller;
 
 public class TimeRecordCalculator
 {
-    readonly decimal _eightHours = 8 * 60;
+    private readonly decimal _eightHours = 8 * 60;
 
     public TimeRecordCategorized[] CalculateCategorySummary(TimeRecord[] timeRecords)
     {
@@ -25,7 +25,7 @@ public class TimeRecordCalculator
                     Date = first.Date,
                     Category = first.Category,
                     WorkMinutes = (decimal)item.Where(_ => !_.Travel).Sum(_ => _.Duration.TotalMinutes),
-                    TravelMinutes = (decimal)item.Where(_ => _.Travel).Sum(_ => _.Duration.TotalMinutes),
+                    TravelMinutes = (decimal)item.Where(_ => _.Travel).Sum(_ => _.Duration.TotalMinutes)
                 };
                 result.Add(categoryItem);
             }
@@ -54,7 +54,7 @@ public class TimeRecordCalculator
                 _ => forceOvertime > 0 ? forceOvertime + (totalNormal > 0 ? totalNormal - _eightHours : 0) : totalNormal - _eightHours + forceOvertime
             };
 
-            var startTime = dateGroup.OrderBy(_ => _.Start).FirstOrDefault(_=>!_.Travel)?.Start ?? first.Start;
+            var startTime = dateGroup.OrderBy(_ => _.Start).FirstOrDefault(_ => !_.Travel)?.Start ?? first.Start;
 
             var record = new TimeRecordByDay
             {
@@ -62,7 +62,7 @@ public class TimeRecordCalculator
                 OvertimeMinutes = total,
                 TravelMinutes = travel,
                 WorkMinutes = work,
-                Start = startTime,
+                Start = startTime
             };
 
             result.Add(record);
@@ -78,11 +78,11 @@ public class TimeRecordCalculator
         foreach (var dateGroup in byMonth)
         {
             var first = dateGroup.First();
-            var overTimeTotal = (decimal)dateGroup.Sum(_ => _.OvertimeMinutes);
+            var overTimeTotal = dateGroup.Sum(_ => _.OvertimeMinutes);
             var record = new TimeRecordByMonth
             {
                 Date = first.Date,
-                OvertimeMinutes = overTimeTotal,
+                OvertimeMinutes = overTimeTotal
             };
 
             result.Add(record);
@@ -98,7 +98,7 @@ public class TimeRecordCalculator
 
     public TimeRecordExcel[] CalculateExcel(TimeRecordByDay[] timeRecords)
     {
-        return timeRecords.Select((_) =>
+        return timeRecords.Select(_ =>
             {
                 var hasWorkTime = _.WorkMinutes > 0;
 
@@ -124,15 +124,15 @@ public class TimeRecordCalculator
                     travelEnd = hasTravelTime ? endTime?.AddMinutes(halfTravelTime) : null;
                 }
 
-                return new TimeRecordExcel()
+                return new TimeRecordExcel
                 {
                     Date = _.Date,
                     Start = startTime,
                     End = endTime,
                     TravelStart = travelStart,
-                    TravelEnd = travelEnd,
+                    TravelEnd = travelEnd
                 };
-            }).ToArray();
-
+            })
+            .ToArray();
     }
 }

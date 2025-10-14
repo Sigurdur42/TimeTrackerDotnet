@@ -28,8 +28,8 @@
         <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="4">Comment:</TextBlock>
 
         <CalendarDatePicker VerticalAlignment="Center" Grid.Row="0" Grid.Column="1"
-                    SelectedDate="{Binding TimeRecord.Date, Converter={StaticResource DateOnlyDateTimeConverter}}" 
-                    SelectedDateFormat="Short" />
+                            SelectedDate="{Binding TimeRecord.Date, Converter={StaticResource DateOnlyDateTimeConverter}}"
+                            SelectedDateFormat="Short" />
         <MaskedTextBox Grid.Row="1" Grid.Column="1"
                        Text="{Binding TimeRecord.Start, Converter={StaticResource TimeOnlyToStringConverter}, UpdateSourceTrigger=LostFocus}"
                        Mask="00:00" />

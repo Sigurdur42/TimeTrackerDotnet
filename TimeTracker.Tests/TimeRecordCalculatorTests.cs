@@ -7,10 +7,10 @@ namespace TimeTracker.Tests;
 
 public class TimeRecordCalculatorTests
 {
-    ResourceLoader _resourceLoader = null!;
-    readonly Assembly _assembly = Assembly.GetExecutingAssembly();
-    readonly CultureInfo _culture = new("de-de");
-    TimeRecord[] _data = [];
+    private readonly Assembly _assembly = Assembly.GetExecutingAssembly();
+    private readonly CultureInfo _culture = new("de-de");
+    private TimeRecord[] _data = [];
+    private ResourceLoader _resourceLoader = null!;
 
     [OneTimeSetUp]
     public void OneTimeSetUp()
@@ -44,8 +44,8 @@ public class TimeRecordCalculatorTests
     [TestCase("01.07.2024", 2 * 60 + 00)]
     [TestCase("27.01.2024", 7 * 60 + 00)]
     [TestCase("17.02.2024", 10 * 60 + 20)]
-    [TestCase("29.08.2024", -1 * (50))]
-    [TestCase("29.12.2023", -1 * (8 * 60))]
+    [TestCase("29.08.2024", -1 * 50)]
+    [TestCase("29.12.2023", -1 * 8 * 60)]
     [TestCase("22.12.2023", -1 * (1 * 60 + 40))]
     [TestCase("21.12.2023", -1 * (2 * 60 + 25))]
     [TestCase("20.12.2023", 1 * (0 * 60 + 5))]
@@ -96,7 +96,6 @@ public class TimeRecordCalculatorTests
     [TestCase("28.02.2024", "1:05")]
     [TestCase("29.02.2024", "1:20")]
     [TestCase("30.08.2024", "-0:45")]
-    
     [TestCase("01.08.2023", "-0:10")]
     [TestCase("02.08.2023", "0:40")]
     [TestCase("03.08.2023", "1:00")]
@@ -110,7 +109,6 @@ public class TimeRecordCalculatorTests
     [TestCase("28.08.2023", "1:10")]
     [TestCase("29.08.2023", "0:35")]
     [TestCase("30.08.2023", "0:06")]
-    
     public void VerifyByDayCalculationReadable(string date, string overtimeReadable)
     {
         var overtime = (decimal)TimeSpan.Parse(overtimeReadable).TotalMinutes;
@@ -124,7 +122,7 @@ public class TimeRecordCalculatorTests
 
     [TestCase("07.2024", 14 * 60 + 55)]
     [TestCase("05.2024", -1 * (16 * 60 + 05))]
-    [TestCase("12.2023", -1 * (13 * 60 + 55))] 
+    [TestCase("12.2023", -1 * (13 * 60 + 55))]
     [TestCase("02.2024", 46 * 60 + 28)]
     [TestCase("08.2023", 3 * 60 + 21)]
     public void VerifyByMonthCalculation(string month, decimal overtime)

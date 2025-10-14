@@ -12,11 +12,8 @@ public class TimeOnlyConverter : DateOnlyConverter
 
     public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
     {
-        if (text is null)
-        {
-            return null;
-        }
-        
+        if (text is null) return null;
+
         var parts = text.Split(':');
         var result = new TimeOnly(int.Parse(parts[0].Trim()), int.Parse(parts[1].Trim()));
         return result;
@@ -24,10 +21,7 @@ public class TimeOnlyConverter : DateOnlyConverter
 
     public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
     {
-        if (value is TimeOnly date)
-        {
-            return date.ToString("HH:mm", _culture);
-        }
+        if (value is TimeOnly date) return date.ToString("HH:mm", _culture);
 
         return null;
     }

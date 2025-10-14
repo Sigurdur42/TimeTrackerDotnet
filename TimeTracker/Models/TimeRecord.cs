@@ -8,12 +8,12 @@ namespace TimeTracker.Models;
 [DebuggerDisplay("{Date} - {Start} - {End} - {Duration}")]
 public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
 {
-    private DateOnly _date;
-    private TimeOnly _start;
-    private TimeOnly _end;
     private bool _allOvertime;
-    private bool _travel;
     private string? _comment;
+    private DateOnly _date;
+    private TimeOnly _end;
+    private TimeOnly _start;
+    private bool _travel;
 
     [Index(0)]
     public DateOnly Date
@@ -65,22 +65,14 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         get
         {
             var comment = Comment?.Trim();
-            if (comment is null || comment.Length == 0)
-            {
-                return "";
-            }
+            if (comment is null || comment.Length == 0) return "";
 
             if (comment.StartsWith("gmk", StringComparison.InvariantCultureIgnoreCase))
-            {
                 // GMK shall not be summarized as it needs to be stated separately
                 return comment;
-            }
 
             var index = comment.IndexOf(':');
-            if (index > 0)
-            {
-                comment = comment[..index].Trim();
-            }
+            if (index > 0) comment = comment[..index].Trim();
 
             return $"{char.ToUpper(comment[0])}{comment[1..]}";
         }
@@ -100,12 +92,7 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
-        return Date.Equals(other.Date)
-               && Start.Equals(other.Start)
-               && End.Equals(other.End) &&
-               AllOvertime == other.AllOvertime
-               && Comment == other.Comment
-               && Travel == other.Travel;
+        return Date.Equals(other.Date) && Start.Equals(other.Start) && End.Equals(other.End) && AllOvertime == other.AllOvertime && Comment == other.Comment && Travel == other.Travel;
     }
 
     public override bool Equals(object? obj)
@@ -119,7 +106,7 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     {
         return HashCode.Combine(Date, Start, End, AllOvertime, Comment, Travel);
     }
-    
+
     public void CopyTo(TimeRecord other)
     {
         other.Date = Date;

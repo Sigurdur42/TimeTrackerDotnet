@@ -185,17 +185,17 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Statistics">
-                <DataGrid Grid.Column="0"
-                          VerticalAlignment="Stretch"
-                          Margin="0"
-                          ItemsSource="{Binding ByMonthData}"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          GridLinesVisibility="All"
-                          SelectionMode="Single"
-                          BorderThickness="1"
-                          VerticalScrollBarVisibility="Visible"
-                          BorderBrush="Gray">
+                <DataGrid
+                    VerticalAlignment="Stretch"
+                    Margin="0"
+                    ItemsSource="{Binding ByMonthData}"
+                    AutoGenerateColumns="False"
+                    IsReadOnly="True"
+                    GridLinesVisibility="All"
+                    SelectionMode="Single"
+                    BorderThickness="1"
+                    VerticalScrollBarVisibility="Visible"
+                    BorderBrush="Gray">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Date"
                                             Binding="{Binding MonthDisplay}" />
@@ -214,17 +214,17 @@
                 </DataGrid>
             </TabItem>
             <TabItem Header="Excel XLS">
-                <DataGrid Grid.Column="0"
-                          VerticalAlignment="Stretch"
-                          Margin="0"
-                          ItemsSource="{Binding ExcelData}"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          GridLinesVisibility="All"
-                          SelectionMode="Single"
-                          BorderThickness="1"
-                          VerticalScrollBarVisibility="Visible"
-                          BorderBrush="Gray">
+                <DataGrid
+                    VerticalAlignment="Stretch"
+                    Margin="0"
+                    ItemsSource="{Binding ExcelData}"
+                    AutoGenerateColumns="False"
+                    IsReadOnly="True"
+                    GridLinesVisibility="All"
+                    SelectionMode="Single"
+                    BorderThickness="1"
+                    VerticalScrollBarVisibility="Visible"
+                    BorderBrush="Gray">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Date"
                                             Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />

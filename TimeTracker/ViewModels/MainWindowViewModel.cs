@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Drawing.Design;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Avalonia.Controls;
 using Config.Net;
 using DynamicData;
 using ReactiveUI;
@@ -16,8 +14,23 @@ namespace TimeTracker.ViewModels;
 public class MainWindowViewModel : ViewModelBase
 {
     private readonly ILocalSettings _settings;
-    private TimeSpan _totalOvertime;
     private TimeRecord? _selectedDaiy;
+    private TimeSpan _totalOvertime;
+
+    public MainWindowViewModel()
+    {
+        var version = GetType()?.Assembly?.GetName()?.Version?.ToString() ?? "";
+        var informational = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? version;
+        informational = informational.Split("+")[0];
+
+        ApplicationTitle = $"TimeTracker - V{informational}";
+
+        var special = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var path = Path.Combine(special, "TimeTracker", "TimeTrackerSettings.json");
+        _settings = new ConfigurationBuilder<ILocalSettings>().UseJsonFile(path).Build();
+
+        if ((_settings.LastDataFile?.Length ?? 0) > 0) LoadDataFile(new FileInfo(_settings.LastDataFile!));
+    }
 
     public ObservableCollection<TimeRecord> RawData { get; } = [];
     public ObservableCollection<TimeRecordCategorized> CategorizedData { get; } = [];
@@ -37,48 +50,18 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedDaiy, value);
     }
 
-    public MainWindowViewModel()
-    {
-            var version = GetType()?.Assembly?.GetName()?.Version?.ToString() ?? "";
-            var informational = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? version;
-            informational = informational.Split("+")[0];
-
-            ApplicationTitle = $"TimeTracker - V{informational}";
-
-
-        var special = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var path = Path.Combine(special, "TimeTracker", "TimeTrackerSettings.json");
-        _settings = new ConfigurationBuilder<ILocalSettings>()
-            .UseJsonFile(path)
-            .Build();
-
-
-        if ((_settings.LastDataFile?.Length ?? 0) > 0)
-        {
-            LoadDataFile(new FileInfo(_settings.LastDataFile!));
-        }
-    }
-
-    
-
     public string? FileName => _settings.LastDataFile;
 
     public string ApplicationTitle { get; }
 
     public void LoadDataFile(FileInfo fileInfo)
     {
-        if (fileInfo.Exists == false)
-        {
-            return;
-        }
+        if (!fileInfo.Exists) return;
 
         RawData.Clear();
 
         var serializer = new TimeRecordSerializer();
-        var data = serializer.Deserialize(fileInfo)
-            .OrderByDescending(_ => _.Date)
-            .ThenByDescending(_ => _.Start)
-            .ToArray();
+        var data = serializer.Deserialize(fileInfo).OrderByDescending(_ => _.Date).ThenByDescending(_ => _.Start).ToArray();
 
         _settings.LastDataFile = fileInfo.FullName;
         this.RaisePropertyChanged(nameof(FileName));

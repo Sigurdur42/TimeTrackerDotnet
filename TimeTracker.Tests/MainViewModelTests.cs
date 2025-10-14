@@ -5,9 +5,9 @@ namespace TimeTracker.Tests;
 
 public class MainViewModelTests
 {
-    ResourceLoader _resourceLoader = null!;
-    readonly Assembly _assembly = Assembly.GetExecutingAssembly();
-    readonly CultureInfo _culture = new ("de-de");
+    private readonly Assembly _assembly = Assembly.GetExecutingAssembly();
+    private readonly CultureInfo _culture = new("de-de");
+    private ResourceLoader _resourceLoader = null!;
 
     [OneTimeSetUp]
     public void OneTimeSetUp()

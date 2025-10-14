@@ -9,9 +9,6 @@ public partial class EditRecord : Window
 {
     private readonly EditRecordViewModel _viewModel;
 
-    public bool IsOk => _viewModel.IsOk;
-    public TimeRecord Data => _viewModel.TimeRecord;
-
     public EditRecord() : this(new TimeRecord(), true)
     {
     }
@@ -22,6 +19,9 @@ public partial class EditRecord : Window
         _viewModel = new EditRecordViewModel(record, isEdit);
         DataContext = _viewModel;
     }
+
+    public bool IsOk => _viewModel.IsOk;
+    public TimeRecord Data => _viewModel.TimeRecord;
 
     private void OnOk(object? sender, RoutedEventArgs e)
     {

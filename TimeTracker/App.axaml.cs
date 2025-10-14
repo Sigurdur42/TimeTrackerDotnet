@@ -6,7 +6,7 @@ using TimeTracker.Views;
 
 namespace TimeTracker;
 
-public partial class App : Application
+public class App : Application
 {
     public override void Initialize()
     {
@@ -24,7 +24,7 @@ public partial class App : Application
                 DataContext = viewModel,
                 ViewModel = viewModel,
                 ShowInTaskbar = true,
-                ShowActivated = true,
+                ShowActivated = true
             };
 
             desktop.MainWindow = window;

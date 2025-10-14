@@ -1,16 +1,14 @@
 using System;
 using System.Diagnostics;
-using CsvHelper.Configuration.Attributes;
 using ReactiveUI;
 
 namespace TimeTracker.Models;
 
 [DebuggerDisplay("{MonthDisplay} - {Overtime}")]
-public partial class TimeRecordByMonth : ReactiveObject
+public class TimeRecordByMonth : ReactiveObject
 {
-    DateOnly _date;
-    decimal _overtimeMinutes;
-
+    private DateOnly _date;
+    private decimal _overtimeMinutes;
 
     public DateOnly Date
     {
