@@ -16,33 +16,31 @@
         <converter:TimeOnlyToStringConverter x:Key="TimeOnlyToStringConverter" />
     </Window.Resources>
 
-    <Grid Margin="5" RowDefinitions="Auto,Auto,Auto,Auto,Auto,10,Auto">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-
-        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="0">Date:</TextBlock>
-        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="1">Start:</TextBlock>
-        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="2">End:</TextBlock>
-        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="4">Comment:</TextBlock>
+    <Grid Margin="5" RowDefinitions="Auto,Auto,Auto,Auto,Auto,10,Auto" ColumnDefinitions="Auto,Auto">
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="0" Margin="0,3,5,0">Date:</TextBlock>
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="1" Margin="0,3,5,0">Start:</TextBlock>
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="2" Margin="0,3,5,0">End:</TextBlock>
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="4" Margin="0,3,5,0">Comment:</TextBlock>
 
         <CalendarDatePicker VerticalAlignment="Center" Grid.Row="0" Grid.Column="1"
+                            Margin="0,3,0,0"
                             SelectedDate="{Binding TimeRecord.Date, Converter={StaticResource DateOnlyDateTimeConverter}}"
                             SelectedDateFormat="Short" />
         <MaskedTextBox Grid.Row="1" Grid.Column="1"
+                       Margin="0,3,0,0"
                        Text="{Binding TimeRecord.Start, Converter={StaticResource TimeOnlyToStringConverter}, UpdateSourceTrigger=LostFocus}"
                        Mask="00:00" />
         <MaskedTextBox Grid.Row="2" Grid.Column="1"
+                       Margin="0,3,0,0"
                        Text="{Binding TimeRecord.End, Converter={StaticResource TimeOnlyToStringConverter}, UpdateSourceTrigger=LostFocus}"
                        Mask="00:00" />
 
-        <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Grid.Row="3" Grid.Column="1" Spacing="0,0,0,5">
-            <CheckBox VerticalAlignment="Center" IsChecked="{Binding TimeRecord.AllOvertime}">Overtime:</CheckBox>
-            <CheckBox VerticalAlignment="Center" IsChecked="{Binding TimeRecord.Travel}">Travel:</CheckBox>
+        <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Grid.Row="3" Grid.Column="1" Spacing="0,0,0,5" Margin="0,3,0,0">
+            <CheckBox VerticalAlignment="Center" IsChecked="{Binding TimeRecord.AllOvertime}">Overtime</CheckBox>
+            <CheckBox VerticalAlignment="Center" IsChecked="{Binding TimeRecord.Travel}">Travel</CheckBox>
         </StackPanel>
 
-        <TextBox VerticalAlignment="Center" Grid.Row="4" Grid.Column="1" MinWidth="400"
+        <TextBox VerticalAlignment="Center" Grid.Row="4" Grid.Column="1" MinWidth="400" Margin="0,3,0,0"
                  Text="{Binding TimeRecord.Comment}" />
 
         <Grid Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="2" ColumnDefinitions="*,10,*">
