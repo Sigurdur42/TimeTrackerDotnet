@@ -8,9 +8,9 @@
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <RootNamespace>TimeTracker</RootNamespace>
         <ApplicationIcon>Assets\clock.ico</ApplicationIcon>
-        <FileVersion>2.0.5.0</FileVersion>
-        <AssemblyVersion>2.0.5.0</AssemblyVersion>
-        <Version>2.0-Beta5</Version>
+        <FileVersion>2.0.6.0</FileVersion>
+        <AssemblyVersion>2.0.6.0</AssemblyVersion>
+        <Version>2.0-Beta6</Version>
     </PropertyGroup>
     <ItemGroup>
         <AvaloniaResource Include="Assets\**"/>

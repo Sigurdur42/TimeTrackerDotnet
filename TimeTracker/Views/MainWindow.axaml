@@ -226,8 +226,25 @@
                     VerticalScrollBarVisibility="Visible"
                     BorderBrush="Gray">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Date"
-                                            Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
+                        <DataGridTemplateColumn Header="Date" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="Auto, Auto">
+                                        <Button
+                                            Grid.Column="0"
+                                            ToolTip.Tip="Copies the data into clipboard to be used with the Excel file"
+                                            Click="OnCopyExcelData"
+                                            Classes="Small">
+                                            📑
+                                        </Button>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+
                         <DataGridTextColumn Header="Start"
                                             Binding="{Binding Start, StringFormat=HH:mm, Mode=OneWay}" />
                         <DataGridTextColumn Header="End"

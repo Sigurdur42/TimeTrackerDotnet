@@ -86,4 +86,24 @@ public partial class MainWindow : Window
             Console.WriteLine(e);
         }
     }
+
+    private async void OnCopyExcelData(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if ((sender as Button)?.DataContext is not TimeRecordExcel timeRecord)
+            {
+                return;
+            }
+
+            var data = $"{timeRecord.Start}\t{timeRecord.End}\t0:45";
+
+            var clipboard = Clipboard;
+            if (clipboard != null) await clipboard.SetTextAsync(data);
+        }
+        catch
+        {
+            // Just avoid crash here
+        }
+    }
 }
