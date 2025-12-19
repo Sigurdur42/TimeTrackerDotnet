@@ -10,6 +10,7 @@ public class App : Application
 {
     public override void Initialize()
     {
+        ApplicationBrushes.Init();
         AvaloniaXamlLoader.Load(this);
     }
 

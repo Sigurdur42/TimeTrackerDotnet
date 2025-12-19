@@ -8,6 +8,26 @@
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <FontFamily x:Key="FaBrands">avares://TimeTracker/Assets/Font Awesome 6 Brands-Regular-400.otf#Font Awesome 6 Brands</FontFamily>
+            <FontFamily x:Key="FaRegular">avares://TimeTracker/Assets/Font Awesome 6 Free-Regular-400.otf#Font Awesome 6 Free</FontFamily>
+            <FontFamily x:Key="FaSolid">avares://TimeTracker/Assets/Font Awesome 6 Free-Solid-900.otf#Font Awesome 6 Solid</FontFamily>
+
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key='Light'>
+                    <SolidColorBrush x:Key='DataGridBackgroundColorBrush'>LightGray</SolidColorBrush>
+                    <SolidColorBrush x:Key='DataGridBackgroundColorBrushOtherRow'>#f3f3f3</SolidColorBrush>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key='Dark'>
+                    <SolidColorBrush x:Key='DataGridBackgroundColorBrush'>#303030</SolidColorBrush>
+                    <SolidColorBrush x:Key='DataGridBackgroundColorBrushOtherRow'>#1b1b1b</SolidColorBrush>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
         <!-- <FluentTheme /> -->
         <!-- <SimpleTheme/> -->
@@ -17,16 +37,28 @@
         <StyleInclude Source="avares://Semi.Avalonia.DataGrid/Index.axaml" />
 
         <Style Selector="TextBlock">
-            <Setter Property="VerticalAlignment"
-                    Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style Selector="Label">
-            <Setter Property="VerticalAlignment"
-                    Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="CheckBox">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style Selector="DataGridColumnHeader">
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button">
-            <Setter Property="VerticalAlignment"
-                    Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Foreground"
+                    Value="{x:Static local:ApplicationBrushes.ControlForeground}" />
         </Style>
     </Application.Styles>
 </Application>

@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:converter="clr-namespace:TimeTracker.Views.Converter"
+        xmlns:timeTracker="clr-namespace:TimeTracker"
         mc:Ignorable="d"
         d:DesignWidth="800"
         d:DesignHeight="450"
@@ -229,17 +230,24 @@
                         <DataGridTemplateColumn Header="Date" Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Grid ColumnDefinitions="Auto, Auto">
-                                        <Button
-                                            Grid.Column="0"
-                                            ToolTip.Tip="Copies the data into clipboard to be used with the Excel file"
-                                            Click="OnCopyExcelData"
-                                            Classes="Small">
-                                            📑
-                                        </Button>
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
-                                    </Grid>
+
+                                    <Button
+
+                                        ToolTip.Tip="Copies the data into clipboard to be used with the Excel file"
+                                        Click="OnCopyExcelData"
+                                        Classes="Small">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{x:Static timeTracker:FontawesomeSymbols.FileExcel}"
+                                                       FontFamily="{StaticResource FaRegular}"
+                                                       VerticalAlignment="Center" 
+                                                       />
+                                            <TextBlock
+                                                VerticalAlignment="Center" 
+                                                Margin="5,0,0,0"
+                                                Text="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
+                                        </StackPanel>
+                                    </Button>
+
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
