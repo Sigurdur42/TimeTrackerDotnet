@@ -211,6 +211,17 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Since Start"
+                                                Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Foreground="{Binding OvertimeTotal, Converter={StaticResource TimeSpanToBrushConverter}}"
+                                        HorizontalAlignment="Right"
+                                        Text="{Binding OvertimeTotal, Converter={StaticResource OvertimeDisplayConverter}}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>
@@ -239,10 +250,9 @@
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="{x:Static timeTracker:FontawesomeSymbols.FileExcel}"
                                                        FontFamily="{StaticResource FaRegular}"
-                                                       VerticalAlignment="Center" 
-                                                       />
+                                                       VerticalAlignment="Center" />
                                             <TextBlock
-                                                VerticalAlignment="Center" 
+                                                VerticalAlignment="Center"
                                                 Margin="5,0,0,0"
                                                 Text="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
                                         </StackPanel>

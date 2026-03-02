@@ -95,6 +95,13 @@ public class MainWindowViewModel : ViewModelBase
         ByMonthData.Clear();
         ByMonthData.AddRange(byMonth.OrderByDescending(_ => _.SortDisplay));
 
+        var total = TimeSpan.Zero;
+        foreach (var item in ByMonthData.OrderBy(_ => _.SortDisplay))
+        {
+            total += item.Overtime;
+            item.OvertimeTotal = total;
+        }
+
         TotalOvertime = TimeSpan.FromMinutes((double)calculator.CalculateTotalOvertime(byMonth));
 
         var byExcel = calculator.CalculateExcel(byDay);
