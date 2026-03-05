@@ -23,26 +23,9 @@
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel />
     </Design.DataContext>
-    <Grid Margin="5">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="5" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="5" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <Grid Margin="5" RowDefinitions="Auto,5,Auto,5,*">
         <!-- First row with browser and file name -->
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,*" RowDefinitions="Auto,Auto,Auto">
             <Label Grid.Row="0"
                    Grid.Column="0">
                 Data File:
@@ -104,14 +87,7 @@
         <TabControl Grid.Row="4"
                     VerticalAlignment="Stretch">
             <TabItem Header="Loaded Data">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*" />
-                        <ColumnDefinition Width="5" />
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="5" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                <Grid ColumnDefinitions="3*,5,2*,5,2*">
                     <DataGrid VerticalAlignment="Stretch"
                               Margin="0"
                               ItemsSource="{Binding RawData}"
@@ -178,6 +154,18 @@
                                             Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}, Mode=OneWay}"
                                             Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}, Mode=OneWay}"
                                             HorizontalAlignment="Right" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="This Week"
+                                                    Width="Auto">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock
+                                            Foreground="{Binding OvertimeThisWeek, Converter={StaticResource TimeSpanToBrushConverter}, Mode=OneWay}"
+                                            Text="{Binding OvertimeThisWeek, Converter={StaticResource OvertimeDisplayConverter}, Mode=OneWay}"
+                                            HorizontalAlignment="Right"
+                                            IsVisible="{Binding IsLastOfWeek}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

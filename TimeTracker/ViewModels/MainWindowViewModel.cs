@@ -82,6 +82,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         var calculator = new TimeRecordCalculator();
         var raw = RawData.ToArray();
+        var total = TimeSpan.Zero;
 
         var categorized = calculator.CalculateCategorySummary(raw);
         CategorizedData.Clear();
@@ -90,12 +91,29 @@ public class MainWindowViewModel : ViewModelBase
         var byDay = calculator.CalculateByDay(raw);
         ByDayData.Clear();
         ByDayData.AddRange(byDay.OrderByDescending(_ => _.Date));
+        total = TimeSpan.Zero;
+        TimeRecordByDay? lastDay = null;
+        foreach (var item in byDay.OrderBy(_ => _.Date))
+        {
+            if (item.Date.DayOfWeek == DayOfWeek.Monday)
+            {
+                lastDay?.IsLastOfWeek = true;
+                total = TimeSpan.Zero;
+            }
+
+            total += item.Overtime;
+            item.OvertimeThisWeek = total;
+
+            lastDay = item;
+        }
+        
+        lastDay?.IsLastOfWeek = true;
 
         var byMonth = calculator.CalculateByMonth(byDay);
         ByMonthData.Clear();
         ByMonthData.AddRange(byMonth.OrderByDescending(_ => _.SortDisplay));
 
-        var total = TimeSpan.Zero;
+        total = TimeSpan.Zero;
         foreach (var item in ByMonthData.OrderBy(_ => _.SortDisplay))
         {
             total += item.Overtime;

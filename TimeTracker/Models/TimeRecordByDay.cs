@@ -11,6 +11,7 @@ public class TimeRecordByDay : ReactiveObject
     private decimal _overtimeMinutes;
     private decimal _travelMinutes;
     private decimal _workMinutes;
+    private TimeSpan _overtimeThisWeek;
 
     public TimeOnly Start { get; set; }
 
@@ -38,6 +39,12 @@ public class TimeRecordByDay : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _workMinutes, value);
     }
 
+    public TimeSpan OvertimeThisWeek
+    {
+        get => _overtimeThisWeek;
+        set => this.RaiseAndSetIfChanged(ref _overtimeThisWeek, value);
+    }
+
     public TimeSpan Overtime => TimeSpan.FromMinutes((double)OvertimeMinutes);
 
     public string Month
@@ -47,5 +54,13 @@ public class TimeRecordByDay : ReactiveObject
             var date = Date;
             return $"{date.Month:d2}.{date.Year:d4}";
         }
+    }
+
+    private bool _isLastOfWeek;
+
+    public bool IsLastOfWeek
+    {
+        get => _isLastOfWeek;
+        set => this.RaiseAndSetIfChanged(ref _isLastOfWeek, value);
     }
 }
