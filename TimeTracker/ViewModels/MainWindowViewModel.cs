@@ -97,7 +97,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             if (item.Date.DayOfWeek == DayOfWeek.Monday)
             {
-                lastDay?.IsLastOfWeek = true;
+                if (lastDay != null) lastDay.IsLastOfWeek = true;
                 total = TimeSpan.Zero;
             }
 
@@ -106,8 +106,8 @@ public class MainWindowViewModel : ViewModelBase
 
             lastDay = item;
         }
-        
-        lastDay?.IsLastOfWeek = true;
+
+        if (lastDay != null) lastDay.IsLastOfWeek = true;
 
         var byMonth = calculator.CalculateByMonth(byDay);
         ByMonthData.Clear();
