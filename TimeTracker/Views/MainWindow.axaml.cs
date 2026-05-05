@@ -36,7 +36,7 @@ public partial class MainWindow : Window
         var selectedFile = result[0];
         try
         {
-            ViewModel.LoadDataFile(new FileInfo(selectedFile.Path.AbsolutePath));
+            ViewModel.LoadDataFile(new FileInfo(selectedFile.Path.LocalPath));
         }
         catch (Exception exception)
         {
