@@ -18,6 +18,11 @@
         <converter:TimeSpanToBrushConverter x:Key="TimeSpanToBrushConverter" />
         <converter:DateOnlyDisplayConverter x:Key="DateOnlyDisplayConverter" />
     </Window.Resources>
+    <Window.Styles>
+        <Style Selector="DataGridCell.rightAlign TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+        </Style>
+    </Window.Styles>
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
@@ -101,6 +106,7 @@
                               BorderBrush="Gray">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date"
+                                                CellStyleClasses="rightAlign"
                                                 Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter},  Mode=OneWay}" />
                             <DataGridTextColumn Header="Start"
                                                 Binding="{Binding Start, StringFormat=HH:mm, Mode=OneWay}" />
@@ -125,6 +131,7 @@
                               BorderBrush="Gray">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date"
+                                                CellStyleClasses="rightAlign"
                                                 Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
                             <DataGridTextColumn Header="Duration"
                                                 Binding="{Binding Duration, Converter={StaticResource DurationDisplayConverter}, Mode=OneWay}" />
@@ -145,12 +152,14 @@
                               BorderBrush="Gray">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date"
+                                                CellStyleClasses="rightAlign"
                                                 Binding="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
                             <DataGridTemplateColumn Header="Overtime"
                                                     Width="Auto">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock
+                                            Margin="3,0,3,0"
                                             Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}, Mode=OneWay}"
                                             Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}, Mode=OneWay}"
                                             HorizontalAlignment="Right" />
@@ -162,6 +171,7 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock
+                                            Margin="3,0,3,0"
                                             Foreground="{Binding OvertimeThisWeek, Converter={StaticResource TimeSpanToBrushConverter}, Mode=OneWay}"
                                             Text="{Binding OvertimeThisWeek, Converter={StaticResource OvertimeDisplayConverter}, Mode=OneWay}"
                                             HorizontalAlignment="Right"
@@ -187,12 +197,14 @@
                     BorderBrush="Gray">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Date"
+                                            CellStyleClasses="rightAlign"
                                             Binding="{Binding MonthDisplay}" />
                         <DataGridTemplateColumn Header="Overtime"
                                                 Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock
+                                        Margin="3,0,3,0"
                                         Foreground="{Binding Overtime, Converter={StaticResource TimeSpanToBrushConverter}}"
                                         HorizontalAlignment="Right"
                                         Text="{Binding Overtime, Converter={StaticResource OvertimeDisplayConverter}}" />
@@ -204,6 +216,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock
+                                        Margin="3,0,3,0"
                                         Foreground="{Binding OvertimeTotal, Converter={StaticResource TimeSpanToBrushConverter}}"
                                         HorizontalAlignment="Right"
                                         Text="{Binding OvertimeTotal, Converter={StaticResource OvertimeDisplayConverter}}" />
@@ -229,9 +242,7 @@
                         <DataGridTemplateColumn Header="Date" Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-
                                     <Button
-
                                         ToolTip.Tip="Copies the data into clipboard to be used with the Excel file"
                                         Click="OnCopyExcelData"
                                         Classes="Small">

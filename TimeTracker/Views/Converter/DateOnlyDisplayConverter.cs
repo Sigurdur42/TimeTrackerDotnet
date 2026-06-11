@@ -8,7 +8,7 @@ public class DateOnlyDisplayConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is DateOnly date) return date.ToString("dd.MM.yyyy");
+        if (value is DateOnly date) return date.ToString("ddd dd.MM.yyyy");
 
         return null;
     }

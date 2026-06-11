@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using TimeTracker.Models;
@@ -75,6 +76,11 @@ public partial class MainWindow : Window
             var dialog = new EditRecord(record, editMode);
             await dialog.ShowDialog(this);
             if (!dialog.IsOk) return;
+            
+            // YIELD THE UI THREAD:
+            // This gives the Avalonia Dispatcher a brief moment to process the window 
+            // closing messages and fully remove the dialog from the visual tree.
+            await Task.Delay(10);
 
             dialog.Data.CopyTo(record);
             if (!editMode) ViewModel.RawData.Insert(0, record);
