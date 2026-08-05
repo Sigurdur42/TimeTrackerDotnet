@@ -9,7 +9,6 @@ public class TimeSpanToBrushConverter : IValueConverter
 {
     private static readonly SolidColorBrush Green = SolidColorBrush.Parse("Green");
     private static readonly SolidColorBrush Red = SolidColorBrush.Parse("OrangeRed");
-    private static readonly SolidColorBrush Black = SolidColorBrush.Parse("Black");
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -19,7 +18,7 @@ public class TimeSpanToBrushConverter : IValueConverter
         {
             > 0 => Green,
             < 0 => Red,
-            _ => Black
+            _ => ApplicationBrushes.ControlForeground
         };
     }
 
