@@ -10,11 +10,10 @@ public class OvertimeDisplayConverter : IValueConverter
     {
         if (value is TimeSpan timeSpan)
         {
-            var prefix = "";
-            if (timeSpan.TotalMinutes < 0) prefix = "-";
+            var prefix = timeSpan.Ticks < 0 ? "-" : "";
 
-            var hours = decimal.Abs(timeSpan.Hours) + decimal.Abs(timeSpan.Days) * 24;
-            var minutes = decimal.Abs(timeSpan.Minutes);
+            var hours = Math.Abs(timeSpan.Hours) + Math.Abs(timeSpan.Days) * 24;
+            var minutes = Math.Abs(timeSpan.Minutes);
 
             return $"{prefix}{hours:00}:{minutes:00}";
         }
