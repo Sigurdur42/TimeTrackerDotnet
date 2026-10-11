@@ -11,6 +11,8 @@ namespace TimeTracker.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
+    public const string DefaultDataFileName = "TimeTracker.csv";
+
     private readonly TimeRecordCalculator _calculator = new();
     private readonly TimeRecordSerializer _serializer = new();
     private readonly ILocalSettings _settings;
@@ -26,10 +28,37 @@ public class MainWindowViewModel : ViewModelBase
         ApplicationTitle = $"TimeTracker - V{informational}";
 
         var special = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var path = Path.Combine(special, "TimeTracker", "TimeTrackerSettings.json");
-        _settings = new ConfigurationBuilder<ILocalSettings>().UseJsonFile(path).Build();
+        var appDirectory = Path.Combine(special, "TimeTracker");
+        _settings = new ConfigurationBuilder<ILocalSettings>().UseJsonFile(Path.Combine(appDirectory, "TimeTrackerSettings.json")).Build();
 
-        if (!string.IsNullOrEmpty(_settings.LastDataFile)) LoadDataFile(new FileInfo(_settings.LastDataFile));
+        try
+        {
+            LoadDataFile(GetOrCreateDataFile(_settings.LastDataFile, appDirectory));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // TODO: Better error handling
+            Console.WriteLine(exception);
+        }
+    }
+
+    /// <summary>
+    ///     Returns the last used data file. If it does not exist, an empty one is created - at the last used location
+    ///     if its directory still exists (e.g. drive is mounted), otherwise as default file in the app directory.
+    /// </summary>
+    public static FileInfo GetOrCreateDataFile(string? lastDataFile, string appDirectory)
+    {
+        var useLastFile = !string.IsNullOrEmpty(lastDataFile) && Directory.Exists(Path.GetDirectoryName(lastDataFile));
+        var file = new FileInfo(useLastFile ? lastDataFile! : Path.Combine(appDirectory, DefaultDataFileName));
+
+        if (!file.Exists)
+        {
+            file.Directory?.Create();
+            File.Create(file.FullName).Dispose();
+            file.Refresh();
+        }
+
+        return file;
     }
 
     public RangeObservableCollection<TimeRecord> RawData { get; } = [];

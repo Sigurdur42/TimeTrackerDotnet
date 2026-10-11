@@ -8,9 +8,13 @@
 The binary is the build into ``bin\Release\net10.0``
 
 ## First Time Usage
-You need a ``.csv`` file to open. Use this as template:
+On first start an empty ``TimeTracker.csv`` is created in the application data folder
+(``%APPDATA%\TimeTracker`` on Windows, ``~/.config/TimeTracker`` on Linux) and loaded automatically.
+If the last used file is missing, it is recreated empty at its old location, as long as its folder still exists.
+
+To use an existing file instead, load it with the browse button. Each line looks like this:
 ```
 03.09.2026;08:30;13:00;;Your first entry;
 ```
 
-The csv file does not have a header. Just save the above content as file and load it into the TimeTracker.
+The csv file does not have a header.
