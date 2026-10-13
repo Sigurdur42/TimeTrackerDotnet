@@ -64,17 +64,18 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     {
         get
         {
-            var comment = Comment?.Trim();
-            if (comment is null || comment.Length == 0) return "";
+            var comment = Comment.AsSpan().Trim();
+            if (comment.IsEmpty) return "";
 
             if (comment.StartsWith("gmk", StringComparison.InvariantCultureIgnoreCase))
                 // GMK shall not be summarized as it needs to be stated separately
-                return comment;
+                return comment.ToString();
 
             var index = comment.IndexOf(':');
             if (index > 0) comment = comment[..index].Trim();
 
-            return $"{char.ToUpper(comment[0])}{comment[1..]}";
+            var first = char.ToUpper(comment[0]);
+            return string.Concat(new ReadOnlySpan<char>(in first), comment[1..]);
         }
     }
 

@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Config.Net;
-using DynamicData;
 using ReactiveUI;
 using TimeTracker.Controller;
 using TimeTracker.Models;
@@ -13,30 +11,61 @@ namespace TimeTracker.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
+    public const string DefaultDataFileName = "TimeTracker.csv";
+
+    private readonly TimeRecordCalculator _calculator = new();
+    private readonly TimeRecordSerializer _serializer = new();
     private readonly ILocalSettings _settings;
     private TimeRecord? _selectedDaiy;
     private TimeSpan _totalOvertime;
 
     public MainWindowViewModel()
     {
-        var version = GetType()?.Assembly?.GetName()?.Version?.ToString() ?? "";
+        var version = GetType().Assembly.GetName().Version?.ToString() ?? "";
         var informational = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? version;
-        informational = informational.Split("+")[0];
+        informational = informational.Split('+')[0];
 
         ApplicationTitle = $"TimeTracker - V{informational}";
 
         var special = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var path = Path.Combine(special, "TimeTracker", "TimeTrackerSettings.json");
-        _settings = new ConfigurationBuilder<ILocalSettings>().UseJsonFile(path).Build();
+        var appDirectory = Path.Combine(special, "TimeTracker");
+        _settings = new ConfigurationBuilder<ILocalSettings>().UseJsonFile(Path.Combine(appDirectory, "TimeTrackerSettings.json")).Build();
 
-        if ((_settings.LastDataFile?.Length ?? 0) > 0) LoadDataFile(new FileInfo(_settings.LastDataFile!));
+        try
+        {
+            LoadDataFile(GetOrCreateDataFile(_settings.LastDataFile, appDirectory));
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // TODO: Better error handling
+            Console.WriteLine(exception);
+        }
     }
 
-    public ObservableCollection<TimeRecord> RawData { get; } = [];
-    public ObservableCollection<TimeRecordCategorized> CategorizedData { get; } = [];
-    public ObservableCollection<TimeRecordByDay> ByDayData { get; } = [];
-    public ObservableCollection<TimeRecordByMonth> ByMonthData { get; } = [];
-    public ObservableCollection<TimeRecordExcel> ExcelData { get; } = [];
+    /// <summary>
+    ///     Returns the last used data file. If it does not exist, an empty one is created - at the last used location
+    ///     if its directory still exists (e.g. drive is mounted), otherwise as default file in the app directory.
+    /// </summary>
+    public static FileInfo GetOrCreateDataFile(string? lastDataFile, string appDirectory)
+    {
+        var useLastFile = !string.IsNullOrEmpty(lastDataFile) && Directory.Exists(Path.GetDirectoryName(lastDataFile));
+        var file = new FileInfo(useLastFile ? lastDataFile! : Path.Combine(appDirectory, DefaultDataFileName));
+
+        if (!file.Exists)
+        {
+            file.Directory?.Create();
+            File.Create(file.FullName).Dispose();
+            file.Refresh();
+        }
+
+        return file;
+    }
+
+    public RangeObservableCollection<TimeRecord> RawData { get; } = [];
+    public RangeObservableCollection<TimeRecordCategorized> CategorizedData { get; } = [];
+    public RangeObservableCollection<TimeRecordByDay> ByDayData { get; } = [];
+    public RangeObservableCollection<TimeRecordByMonth> ByMonthData { get; } = [];
+    public RangeObservableCollection<TimeRecordExcel> ExcelData { get; } = [];
 
     public TimeSpan TotalOvertime
     {
@@ -58,42 +87,35 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (!fileInfo.Exists) return;
 
-        RawData.Clear();
-
-        var serializer = new TimeRecordSerializer();
-        var data = serializer.Deserialize(fileInfo).OrderByDescending(_ => _.Date).ThenByDescending(_ => _.Start).ToArray();
+        var data = _serializer.Deserialize(fileInfo).OrderByDescending(_ => _.Date).ThenByDescending(_ => _.Start).ToArray();
 
         _settings.LastDataFile = fileInfo.FullName;
         this.RaisePropertyChanged(nameof(FileName));
 
-        RawData.AddRange(data.OrderByDescending(d => d.Date));
-        Recalculate();
+        RawData.Reset(data);
+        Recalculate(data);
     }
 
     public void RecalculateAndSaveData()
     {
-        Recalculate();
+        var raw = RawData.ToArray();
+        Recalculate(raw);
 
-        var serializer = new TimeRecordSerializer();
-        serializer.Serialize(new FileInfo(FileName!), RawData.ToArray());
+        _serializer.Serialize(new FileInfo(FileName!), raw);
     }
 
-    private void Recalculate()
+    private void Recalculate(TimeRecord[] raw)
     {
-        var calculator = new TimeRecordCalculator();
-        var raw = RawData.ToArray();
+        var categorized = _calculator.CalculateCategorySummary(raw);
+        CategorizedData.Reset(categorized.OrderByDescending(_ => _.Date).ThenBy(_ => _.Category));
+
+        // Dates are unique per day/month, so ascending order is computed once and reversed for display
+        var byDay = _calculator.CalculateByDay(raw);
+        Array.Sort(byDay, (a, b) => a.Date.CompareTo(b.Date));
+
         var total = TimeSpan.Zero;
-
-        var categorized = calculator.CalculateCategorySummary(raw);
-        CategorizedData.Clear();
-        CategorizedData.AddRange(categorized.OrderByDescending(_ => _.Date).ThenBy(_ => _.Category));
-
-        var byDay = calculator.CalculateByDay(raw);
-        ByDayData.Clear();
-        ByDayData.AddRange(byDay.OrderByDescending(_ => _.Date));
-        total = TimeSpan.Zero;
         TimeRecordByDay? lastDay = null;
-        foreach (var item in byDay.OrderBy(_ => _.Date))
+        foreach (var item in byDay)
         {
             if (item.Date.DayOfWeek == DayOfWeek.Monday)
             {
@@ -109,21 +131,22 @@ public class MainWindowViewModel : ViewModelBase
 
         if (lastDay != null) lastDay.IsLastOfWeek = true;
 
-        var byMonth = calculator.CalculateByMonth(byDay);
-        ByMonthData.Clear();
-        ByMonthData.AddRange(byMonth.OrderByDescending(_ => _.SortDisplay));
+        ByDayData.Reset(Enumerable.Reverse(byDay));
+
+        var byMonth = _calculator.CalculateByMonth(byDay);
+        Array.Sort(byMonth, (a, b) => a.Date.CompareTo(b.Date));
 
         total = TimeSpan.Zero;
-        foreach (var item in ByMonthData.OrderBy(_ => _.SortDisplay))
+        foreach (var item in byMonth)
         {
             total += item.Overtime;
             item.OvertimeTotal = total;
         }
 
-        TotalOvertime = TimeSpan.FromMinutes((double)calculator.CalculateTotalOvertime(byMonth));
+        ByMonthData.Reset(Enumerable.Reverse(byMonth));
 
-        var byExcel = calculator.CalculateExcel(byDay);
-        ExcelData.Clear();
-        ExcelData.AddRange(byExcel.OrderByDescending(_ => _.Date));
+        TotalOvertime = TimeSpan.FromMinutes((double)_calculator.CalculateTotalOvertime(byMonth));
+
+        ExcelData.Reset(Enumerable.Reverse(_calculator.CalculateExcel(byDay)));
     }
 }

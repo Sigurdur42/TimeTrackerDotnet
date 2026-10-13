@@ -7,28 +7,29 @@ namespace TimeTracker.Controller;
 
 public class TimeRecordCalculator
 {
-    private readonly decimal _eightHours = 8 * 60;
+    private const decimal EightHours = 8 * 60;
 
     public TimeRecordCategorized[] CalculateCategorySummary(TimeRecord[] timeRecords)
     {
         var result = new List<TimeRecordCategorized>();
 
-        var byDate = timeRecords.GroupBy(_ => _.Date);
-        foreach (var dateGroup in byDate)
+        foreach (var dateGroup in timeRecords.GroupBy(_ => _.Date))
+        foreach (var item in dateGroup.GroupBy(_ => _.Category, StringComparer.OrdinalIgnoreCase))
         {
-            var byCategory = dateGroup.GroupBy(_ => _.Category.ToLowerInvariant());
-            foreach (var item in byCategory)
+            double work = 0, travel = 0;
+            foreach (var record in item)
             {
-                var first = item.First();
-                var categoryItem = new TimeRecordCategorized
-                {
-                    Date = first.Date,
-                    Category = first.Category,
-                    WorkMinutes = (decimal)item.Where(_ => !_.Travel).Sum(_ => _.Duration.TotalMinutes),
-                    TravelMinutes = (decimal)item.Where(_ => _.Travel).Sum(_ => _.Duration.TotalMinutes)
-                };
-                result.Add(categoryItem);
+                if (record.Travel) travel += record.Duration.TotalMinutes;
+                else work += record.Duration.TotalMinutes;
             }
+
+            result.Add(new TimeRecordCategorized
+            {
+                Date = dateGroup.Key,
+                Category = item.Key,
+                WorkMinutes = (decimal)work,
+                TravelMinutes = (decimal)travel
+            });
         }
 
         return result.ToArray();
@@ -37,35 +38,47 @@ public class TimeRecordCalculator
     public TimeRecordByDay[] CalculateByDay(TimeRecord[] timeRecords)
     {
         var result = new List<TimeRecordByDay>();
-        var byDate = timeRecords.GroupBy(_ => _.Date);
-        foreach (var dateGroup in byDate)
+        foreach (var dateGroup in timeRecords.GroupBy(_ => _.Date))
         {
-            var first = dateGroup.OrderBy(_ => _.Start).First();
+            double workSum = 0, travelSum = 0, forceOvertimeSum = 0;
+            TimeOnly? firstStart = null, firstWorkStart = null;
 
-            var work = (decimal)dateGroup.Where(_ => !_.Travel).Sum(_ => _.Duration.TotalMinutes);
-            var travel = (decimal)dateGroup.Where(_ => _.Travel).Sum(_ => _.Duration.TotalMinutes);
+            foreach (var record in dateGroup)
+            {
+                var minutes = record.Duration.TotalMinutes;
+                if (record.Travel)
+                {
+                    travelSum += minutes;
+                }
+                else
+                {
+                    workSum += minutes;
+                    if (firstWorkStart is null || record.Start < firstWorkStart) firstWorkStart = record.Start;
+                }
 
-            var forceOvertime = (decimal)dateGroup.Where(_ => _.AllOvertime).Sum(_ => _.Duration.TotalMinutes);
+                if (record.AllOvertime) forceOvertimeSum += minutes;
+                if (firstStart is null || record.Start < firstStart) firstStart = record.Start;
+            }
+
+            var work = (decimal)workSum;
+            var travel = (decimal)travelSum;
+            var forceOvertime = (decimal)forceOvertimeSum;
             var totalNormal = work + travel - forceOvertime;
 
-            var total = first.Date.DayOfWeek switch
+            var total = dateGroup.Key.DayOfWeek switch
             {
                 DayOfWeek.Sunday or DayOfWeek.Saturday => totalNormal + forceOvertime,
-                _ => forceOvertime > 0 ? forceOvertime + (totalNormal > 0 ? totalNormal - _eightHours : 0) : totalNormal - _eightHours + forceOvertime
+                _ => forceOvertime > 0 ? forceOvertime + (totalNormal > 0 ? totalNormal - EightHours : 0) : totalNormal - EightHours + forceOvertime
             };
 
-            var startTime = dateGroup.OrderBy(_ => _.Start).FirstOrDefault(_ => !_.Travel)?.Start ?? first.Start;
-
-            var record = new TimeRecordByDay
+            result.Add(new TimeRecordByDay
             {
-                Date = first.Date,
+                Date = dateGroup.Key,
                 OvertimeMinutes = total,
                 TravelMinutes = travel,
                 WorkMinutes = work,
-                Start = startTime
-            };
-
-            result.Add(record);
+                Start = firstWorkStart ?? firstStart!.Value
+            });
         }
 
         return result.ToArray();
@@ -73,22 +86,14 @@ public class TimeRecordCalculator
 
     public TimeRecordByMonth[] CalculateByMonth(TimeRecordByDay[] timeRecords)
     {
-        var result = new List<TimeRecordByMonth>();
-        var byMonth = timeRecords.GroupBy(_ => _.Month);
-        foreach (var dateGroup in byMonth)
-        {
-            var first = dateGroup.First();
-            var overTimeTotal = dateGroup.Sum(_ => _.OvertimeMinutes);
-            var record = new TimeRecordByMonth
+        return timeRecords
+            .GroupBy(_ => (_.Date.Year, _.Date.Month))
+            .Select(dateGroup => new TimeRecordByMonth
             {
-                Date = first.Date,
-                OvertimeMinutes = overTimeTotal
-            };
-
-            result.Add(record);
-        }
-
-        return result.ToArray();
+                Date = dateGroup.First().Date,
+                OvertimeMinutes = dateGroup.Sum(_ => _.OvertimeMinutes)
+            })
+            .ToArray();
     }
 
     public decimal CalculateTotalOvertime(IEnumerable<TimeRecordByMonth> records)
@@ -101,36 +106,27 @@ public class TimeRecordCalculator
         return timeRecords.Select(_ =>
             {
                 var hasWorkTime = _.WorkMinutes > 0;
-
-                TimeOnly? startTime = _.Start;
-                TimeOnly? endTime = _.Start.AddMinutes((double)_.WorkMinutes + 45);
                 var hasTravelTime = _.TravelMinutes > 0;
-                var halfTravelTime = hasTravelTime ? (double)_.TravelMinutes / 2 : 0d;
-
-                TimeOnly? travelStart = null;
-                TimeOnly? travelEnd = null;
 
                 if (!hasWorkTime && hasTravelTime)
-                {
-                    travelStart = startTime;
-                    travelEnd = startTime?.AddMinutes((double)_.TravelMinutes);
+                    return new TimeRecordExcel
+                    {
+                        Date = _.Date,
+                        TravelStart = _.Start,
+                        TravelEnd = _.Start.AddMinutes((double)_.TravelMinutes)
+                    };
 
-                    startTime = null;
-                    endTime = null;
-                }
-                else
-                {
-                    travelStart = hasTravelTime ? startTime?.AddMinutes(-1 * halfTravelTime) : null;
-                    travelEnd = hasTravelTime ? endTime?.AddMinutes(halfTravelTime) : null;
-                }
+                var startTime = _.Start;
+                var endTime = _.Start.AddMinutes((double)_.WorkMinutes + 45);
+                var halfTravelTime = (double)_.TravelMinutes / 2;
 
                 return new TimeRecordExcel
                 {
                     Date = _.Date,
                     Start = startTime,
                     End = endTime,
-                    TravelStart = travelStart,
-                    TravelEnd = travelEnd
+                    TravelStart = hasTravelTime ? startTime.AddMinutes(-halfTravelTime) : null,
+                    TravelEnd = hasTravelTime ? endTime.AddMinutes(halfTravelTime) : null
                 };
             })
             .ToArray();

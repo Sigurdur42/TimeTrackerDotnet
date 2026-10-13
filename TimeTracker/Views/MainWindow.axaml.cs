@@ -32,7 +32,7 @@ public partial class MainWindow : Window
         };
 
         var result = await storageProvider.OpenFilePickerAsync(options);
-        if (!result.Any()) return;
+        if (result.Count == 0) return;
 
         var selectedFile = result[0];
         try
@@ -55,7 +55,7 @@ public partial class MainWindow : Window
     private async void OnNewRecord(object? sender, RoutedEventArgs e)
     {
         var now = DateTime.Now;
-        var last = ViewModel.RawData?.FirstOrDefault();
+        var last = ViewModel.RawData.FirstOrDefault();
         var lastTime = last?.End ?? TimeOnly.FromDateTime(now);
         var newRecord = new TimeRecord
         {
