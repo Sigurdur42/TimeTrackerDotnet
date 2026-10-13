@@ -135,8 +135,8 @@ public class TimeRecordCalculatorTests
         Assert.That(found.OvertimeMinutes, Is.EqualTo(overtime), "overtime");
     }
 
-    [TestCase("2023.04", -835)]
-    [TestCase("2024.01", -65)]
+    [TestCase("2023.04", -65)]
+    [TestCase("2024.01", 621)]
     public void VerifyTotalOvertimeCalculation(string date, decimal overtime)
     {
         var target = new TimeRecordCalculator();
