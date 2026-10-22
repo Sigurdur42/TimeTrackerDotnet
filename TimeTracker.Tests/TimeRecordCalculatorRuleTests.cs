@@ -187,6 +187,103 @@ public class TimeRecordCalculatorRuleTests
 
     #endregion
 
+    #region Flextime
+
+    [TestCase("2024-02-05", 8, -480)]
+    [TestCase("2024-02-05", 3.5, -210)]
+    [TestCase("2024-02-10", 4, -240)] // Saturday
+    public void FlextimeOnlyDayReducesOvertimeByHours(string date, decimal hours, decimal expected)
+    {
+        var day = SingleDay(TimeRecord.CreateFlextime(Date(date), hours));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(expected));
+            Assert.That(day.FlextimeMinutes, Is.EqualTo(hours * 60));
+            Assert.That(day.WorkMinutes, Is.Zero);
+            Assert.That(day.TravelMinutes, Is.Zero);
+        });
+    }
+
+    [Test]
+    public void FlextimeIsIgnoredOnDaysWithWorkingTime()
+    {
+        // Half day off: the missing 4 hours already result from the working time
+        var day = SingleDay(
+            Record("2024-02-05", "08:00", "12:00"),
+            TimeRecord.CreateFlextime(Date("2024-02-05"), 4));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(-240));
+            Assert.That(day.WorkMinutes, Is.EqualTo(240));
+            Assert.That(day.Start, Is.EqualTo(Time("08:00")));
+        });
+    }
+
+    [Test]
+    public void FlextimeWithCommentIsRecognized()
+    {
+        var day = SingleDay(Record("2024-02-05", "00:00", "02:00", comment: "gleitzeit: Arzt"));
+
+        Assert.That(day.OvertimeMinutes, Is.EqualTo(-120));
+    }
+
+    [Test]
+    public void ZeroDurationDayOffStillCountsEightHours()
+    {
+        // Existing data uses "Gleittag" with start = end, which is a normal record
+        var day = SingleDay(Record("2024-04-03", "07:38", "07:38", comment: "Gleittag"));
+
+        Assert.That(day.OvertimeMinutes, Is.EqualTo(-480));
+    }
+
+    [Test]
+    public void ExcelSkipsFlextimeOnlyDays()
+    {
+        var days = _target.CalculateByDay([
+            TimeRecord.CreateFlextime(Date("2024-02-05"), 8),
+            Record("2024-02-06", "08:00", "12:00"),
+            TimeRecord.CreateFlextime(Date("2024-02-06"), 4)
+        ]);
+
+        var result = _target.CalculateExcel(days);
+
+        Assert.That(result.Select(_ => _.Date), Is.EqualTo(new[] { Date("2024-02-06") }));
+    }
+
+    [Test]
+    public void CreateFlextimeStoresHoursAsDurationFromMidnight()
+    {
+        var record = TimeRecord.CreateFlextime(Date("2024-02-05"), 7.5m);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(record.Start, Is.EqualTo(TimeOnly.MinValue));
+            Assert.That(record.End, Is.EqualTo(Time("07:30")));
+            Assert.That(record.Comment, Is.EqualTo("Gleitzeit"));
+            Assert.That(record.IsFlextime, Is.True);
+        });
+    }
+
+    [Test]
+    public void FlextimeSurvivesCsvRoundTrip()
+    {
+        var serializer = new TimeRecordSerializer();
+        var csv = serializer.Serialize([TimeRecord.CreateFlextime(Date("2024-02-05"), 8)]);
+
+        var result = serializer.Deserialize(csv);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(csv, Is.EqualTo("05.02.2024;00:00;08:00;;Gleitzeit;\n"));
+            Assert.That(result.Single().IsFlextime, Is.True);
+            Assert.That(result.Single().Duration, Is.EqualTo(TimeSpan.FromHours(8)));
+        });
+    }
+
+    #endregion
+
     #region CalculateCategorySummary
 
     [Test]

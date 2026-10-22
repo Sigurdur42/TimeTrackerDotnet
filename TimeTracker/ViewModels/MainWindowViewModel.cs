@@ -96,6 +96,32 @@ public class MainWindowViewModel : ViewModelBase
         Recalculate(data, false);
     }
 
+    /// <summary>
+    ///     Inserts the record at its position in <see cref="RawData" />, which is sorted descending by date and start.
+    /// </summary>
+    public void AddRecord(TimeRecord record)
+    {
+        var index = 0;
+        while (index < RawData.Count && (RawData[index].Date > record.Date || (RawData[index].Date == record.Date && RawData[index].Start > record.Start))) index++;
+
+        RawData.Insert(index, record);
+    }
+
+    /// <summary>
+    ///     Removes exactly the given record instance; records with equal values are kept.
+    /// </summary>
+    public void DeleteRecord(TimeRecord record)
+    {
+        for (var index = 0; index < RawData.Count; index++)
+        {
+            if (!ReferenceEquals(RawData[index], record)) continue;
+
+            if (ReferenceEquals(SelectedDaiy, record)) SelectedDaiy = null;
+            RawData.RemoveAt(index);
+            return;
+        }
+    }
+
     public void RecalculateAndSaveData()
     {
         var raw = RawData.ToArray();

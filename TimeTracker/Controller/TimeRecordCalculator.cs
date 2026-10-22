@@ -40,12 +40,18 @@ public class TimeRecordCalculator
         var result = new List<TimeRecordByDay>();
         foreach (var dateGroup in timeRecords.GroupBy(_ => _.Date))
         {
-            double workSum = 0, travelSum = 0, forceOvertimeSum = 0;
+            double workSum = 0, travelSum = 0, forceOvertimeSum = 0, flextimeSum = 0;
             TimeOnly? firstStart = null, firstWorkStart = null;
 
             foreach (var record in dateGroup)
             {
                 var minutes = record.Duration.TotalMinutes;
+                if (record.IsFlextime)
+                {
+                    flextimeSum += minutes;
+                    continue;
+                }
+
                 if (record.Travel)
                 {
                     travelSum += minutes;
@@ -63,13 +69,18 @@ public class TimeRecordCalculator
             var work = (decimal)workSum;
             var travel = (decimal)travelSum;
             var forceOvertime = (decimal)forceOvertimeSum;
+            var flextime = (decimal)flextimeSum;
             var totalNormal = work + travel - forceOvertime;
 
-            var total = dateGroup.Key.DayOfWeek switch
-            {
-                DayOfWeek.Sunday or DayOfWeek.Saturday => totalNormal + forceOvertime,
-                _ => forceOvertime > 0 ? forceOvertime + (totalNormal > 0 ? totalNormal - EightHours : 0) : totalNormal - EightHours + forceOvertime
-            };
+            // Flextime only counts on days without any other record. Otherwise the missing time is already
+            // part of the working time compared to the eight hours.
+            var total = firstStart is null
+                ? -flextime
+                : dateGroup.Key.DayOfWeek switch
+                {
+                    DayOfWeek.Sunday or DayOfWeek.Saturday => totalNormal + forceOvertime,
+                    _ => forceOvertime > 0 ? forceOvertime + (totalNormal > 0 ? totalNormal - EightHours : 0) : totalNormal - EightHours + forceOvertime
+                };
 
             result.Add(new TimeRecordByDay
             {
@@ -77,7 +88,8 @@ public class TimeRecordCalculator
                 OvertimeMinutes = total,
                 TravelMinutes = travel,
                 WorkMinutes = work,
-                Start = firstWorkStart ?? firstStart!.Value
+                FlextimeMinutes = flextime,
+                Start = firstWorkStart ?? firstStart ?? TimeOnly.MinValue
             });
         }
 
@@ -147,7 +159,8 @@ public class TimeRecordCalculator
 
     public TimeRecordExcel[] CalculateExcel(TimeRecordByDay[] timeRecords)
     {
-        return timeRecords.Select(_ =>
+        // Days with flextime only have no times to be entered
+        return timeRecords.Where(_ => _.WorkMinutes > 0 || _.TravelMinutes > 0 || _.FlextimeMinutes == 0).Select(_ =>
             {
                 var hasWorkTime = _.WorkMinutes > 0;
                 var hasTravelTime = _.TravelMinutes > 0;

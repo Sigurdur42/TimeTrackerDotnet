@@ -8,6 +8,11 @@ namespace TimeTracker.Models;
 [DebuggerDisplay("{Date} - {Start} - {End} - {Duration}")]
 public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
 {
+    /// <summary>
+    ///     Comment (category) of records that reduce the overtime instead of being working time
+    /// </summary>
+    public const string FlextimeCategory = "Gleitzeit";
+
     private bool _allOvertime;
     private string? _comment;
     private DateOnly _date;
@@ -99,6 +104,8 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         }
     }
 
+    [Ignore] public bool IsFlextime => string.Equals(Category, FlextimeCategory, StringComparison.OrdinalIgnoreCase);
+
     [Ignore]
     public string Month
     {
@@ -126,6 +133,20 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     public override int GetHashCode()
     {
         return HashCode.Combine(Date, Start, End, AllOvertime, Comment, Travel);
+    }
+
+    /// <summary>
+    ///     Creates a record for overtime taken off. The hours are stored as duration starting at midnight.
+    /// </summary>
+    public static TimeRecord CreateFlextime(DateOnly date, decimal hours)
+    {
+        return new TimeRecord
+        {
+            Date = date,
+            Start = TimeOnly.MinValue,
+            End = TimeOnly.MinValue.AddMinutes((double)Math.Round(hours * 60)),
+            Comment = FlextimeCategory
+        };
     }
 
     public void CopyTo(TimeRecord other)
