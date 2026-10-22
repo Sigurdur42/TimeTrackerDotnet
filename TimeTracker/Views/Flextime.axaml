@@ -1,0 +1,43 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:TimeTracker.ViewModels"
+        xmlns:converter="clr-namespace:TimeTracker.Views.Converter"
+        x:DataType="viewModels:FlextimeViewModel"
+        WindowStartupLocation="CenterOwner"
+        mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="150"
+        x:Class="TimeTracker.Views.Flextime"
+        SizeToContent="WidthAndHeight"
+        Title="Gleitzeit">
+
+    <Window.Resources>
+        <converter:DateOnlyDateTimeConverter x:Key="DateOnlyDateTimeConverter" />
+    </Window.Resources>
+
+    <!-- Inputs stretch with the window width, the buttons stay docked at the bottom -->
+    <Grid Margin="5" RowDefinitions="Auto,Auto,*,Auto" ColumnDefinitions="Auto,*">
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="0" Margin="0,3,5,0">Date:</TextBlock>
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="1" Margin="0,3,5,0">Hours:</TextBlock>
+
+        <CalendarDatePicker VerticalAlignment="Center" Grid.Row="0" Grid.Column="1"
+                            HorizontalAlignment="Stretch"
+                            Margin="0,3,0,0"
+                            SelectedDate="{Binding Date, Converter={StaticResource DateOnlyDateTimeConverter}}"
+                            SelectedDateFormat="Short" />
+        <NumericUpDown Grid.Row="1" Grid.Column="1"
+                       HorizontalAlignment="Stretch"
+                       Margin="0,3,0,0"
+                       MinWidth="150"
+                       Value="{Binding Hours}"
+                       Minimum="0.25"
+                       Maximum="12"
+                       Increment="0.5"
+                       FormatString="0.##" />
+
+        <Grid Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" ColumnDefinitions="*,10,*" Margin="0,10,0,0">
+            <Button Grid.Column="0" Click="OnOk" Classes="Small" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">OK</Button>
+            <Button Grid.Column="2" Click="OnCancel" Classes="Small" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">Cancel</Button>
+        </Grid>
+    </Grid>
+</Window>

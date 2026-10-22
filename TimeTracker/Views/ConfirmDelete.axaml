@@ -1,0 +1,51 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="clr-namespace:TimeTracker.Models"
+        xmlns:converter="clr-namespace:TimeTracker.Views.Converter"
+        x:DataType="models:TimeRecord"
+        WindowStartupLocation="CenterOwner"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="250"
+        x:Class="TimeTracker.Views.ConfirmDelete"
+        SizeToContent="WidthAndHeight"
+        Title="Löschen">
+
+    <Window.Resources>
+        <converter:DateOnlyDisplayConverter x:Key="DateOnlyDisplayConverter" />
+        <converter:DurationDisplayConverter x:Key="DurationDisplayConverter" />
+    </Window.Resources>
+
+    <!-- Values stretch with the window width, the buttons stay docked at the bottom -->
+    <Grid Margin="5" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" ColumnDefinitions="Auto,*">
+        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,8" FontWeight="SemiBold">
+            Soll dieser Eintrag gelöscht werden?
+        </TextBlock>
+
+        <TextBlock Grid.Column="0" Grid.Row="1" Margin="0,3,5,0">Date:</TextBlock>
+        <TextBlock Grid.Column="0" Grid.Row="2" Margin="0,3,5,0">Start:</TextBlock>
+        <TextBlock Grid.Column="0" Grid.Row="3" Margin="0,3,5,0">End:</TextBlock>
+        <TextBlock Grid.Column="0" Grid.Row="4" Margin="0,3,5,0">Duration:</TextBlock>
+        <TextBlock Grid.Column="0" Grid.Row="6" Margin="0,3,5,0">Comment:</TextBlock>
+
+        <TextBlock Grid.Column="1" Grid.Row="1" Margin="0,3,0,0"
+                   Text="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}}" />
+        <TextBlock Grid.Column="1" Grid.Row="2" Margin="0,3,0,0"
+                   Text="{Binding Start, StringFormat=HH:mm}" />
+        <TextBlock Grid.Column="1" Grid.Row="3" Margin="0,3,0,0"
+                   Text="{Binding End, StringFormat=HH:mm}" />
+        <TextBlock Grid.Column="1" Grid.Row="4" Margin="0,3,0,0"
+                   Text="{Binding Duration, Converter={StaticResource DurationDisplayConverter}}" />
+        <StackPanel Grid.Column="1" Grid.Row="5" Margin="0,3,0,0" Orientation="Horizontal" Spacing="10">
+            <CheckBox IsEnabled="False" IsChecked="{Binding AllOvertime, Mode=OneWay}">Overtime</CheckBox>
+            <CheckBox IsEnabled="False" IsChecked="{Binding Travel, Mode=OneWay}">Travel</CheckBox>
+        </StackPanel>
+        <TextBlock Grid.Column="1" Grid.Row="6" Margin="0,3,0,0" MinWidth="300" TextWrapping="Wrap"
+                   Text="{Binding Comment}" />
+
+        <Grid Grid.Column="0" Grid.Row="8" Grid.ColumnSpan="2" ColumnDefinitions="*,10,*" Margin="0,10,0,0">
+            <Button Grid.Column="0" Click="OnOk" Classes="Small" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">Löschen</Button>
+            <Button Grid.Column="2" Click="OnCancel" Classes="Small" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" IsDefault="True" IsCancel="True">Cancel</Button>
+        </Grid>
+    </Grid>
+</Window>

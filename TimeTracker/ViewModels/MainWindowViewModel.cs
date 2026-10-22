@@ -93,60 +93,100 @@ public class MainWindowViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(FileName));
 
         RawData.Reset(data);
-        Recalculate(data);
+        Recalculate(data, false);
+    }
+
+    /// <summary>
+    ///     Inserts the record at its position in <see cref="RawData" />, which is sorted descending by date and start.
+    /// </summary>
+    public void AddRecord(TimeRecord record)
+    {
+        var index = 0;
+        while (index < RawData.Count && (RawData[index].Date > record.Date || (RawData[index].Date == record.Date && RawData[index].Start > record.Start))) index++;
+
+        RawData.Insert(index, record);
+    }
+
+    /// <summary>
+    ///     Removes exactly the given record instance; records with equal values are kept.
+    /// </summary>
+    public void DeleteRecord(TimeRecord record)
+    {
+        for (var index = 0; index < RawData.Count; index++)
+        {
+            if (!ReferenceEquals(RawData[index], record)) continue;
+
+            if (ReferenceEquals(SelectedDaiy, record)) SelectedDaiy = null;
+            RawData.RemoveAt(index);
+            return;
+        }
     }
 
     public void RecalculateAndSaveData()
     {
         var raw = RawData.ToArray();
-        Recalculate(raw);
+        Recalculate(raw, true);
 
         _serializer.Serialize(new FileInfo(FileName!), raw);
     }
 
-    private void Recalculate(TimeRecord[] raw)
+    // Display order of the derived collections; dates are unique per day/month
+    private static readonly Comparison<TimeRecordCategorized> CategorizedOrder = (a, b) =>
+    {
+        var result = b.Date.CompareTo(a.Date);
+        return result != 0 ? result : string.Compare(a.Category, b.Category, StringComparison.CurrentCulture);
+    };
+
+    private static readonly Comparison<TimeRecordByDay> ByDayOrder = (a, b) => b.Date.CompareTo(a.Date);
+    private static readonly Comparison<TimeRecordByMonth> ByMonthOrder = (a, b) => b.Date.CompareTo(a.Date);
+    private static readonly Comparison<TimeRecordExcel> ExcelOrder = (a, b) => b.Date.CompareTo(a.Date);
+
+    /// <param name="raw">All time records</param>
+    /// <param name="incremental">
+    ///     True to merge the results into the existing collections so that only the affected grid rows are re-rendered,
+    ///     false to replace the whole content (e.g. when a different file is loaded)
+    /// </param>
+    private void Recalculate(TimeRecord[] raw, bool incremental)
     {
         var categorized = _calculator.CalculateCategorySummary(raw);
-        CategorizedData.Reset(categorized.OrderByDescending(_ => _.Date).ThenBy(_ => _.Category));
+        Array.Sort(categorized, CategorizedOrder);
+        Apply(CategorizedData, categorized, CategorizedOrder, (a, b) =>
+            a.Category == b.Category && a.WorkMinutes == b.WorkMinutes && a.TravelMinutes == b.TravelMinutes);
 
-        // Dates are unique per day/month, so ascending order is computed once and reversed for display
+        // Ascending order is needed for the running totals, the display order is the reverse
         var byDay = _calculator.CalculateByDay(raw);
         Array.Sort(byDay, (a, b) => a.Date.CompareTo(b.Date));
 
-        var total = TimeSpan.Zero;
-        TimeRecordByDay? lastDay = null;
-        foreach (var item in byDay)
-        {
-            if (item.Date.DayOfWeek == DayOfWeek.Monday)
-            {
-                if (lastDay != null) lastDay.IsLastOfWeek = true;
-                total = TimeSpan.Zero;
-            }
-
-            total += item.Overtime;
-            item.OvertimeThisWeek = total;
-
-            lastDay = item;
-        }
-
-        if (lastDay != null) lastDay.IsLastOfWeek = true;
-
-        ByDayData.Reset(Enumerable.Reverse(byDay));
+        _calculator.CalculateWeeklyTotals(byDay);
 
         var byMonth = _calculator.CalculateByMonth(byDay);
         Array.Sort(byMonth, (a, b) => a.Date.CompareTo(b.Date));
 
-        total = TimeSpan.Zero;
-        foreach (var item in byMonth)
-        {
-            total += item.Overtime;
-            item.OvertimeTotal = total;
-        }
-
-        ByMonthData.Reset(Enumerable.Reverse(byMonth));
+        _calculator.CalculateRunningTotals(byMonth);
 
         TotalOvertime = TimeSpan.FromMinutes((double)_calculator.CalculateTotalOvertime(byMonth));
 
-        ExcelData.Reset(Enumerable.Reverse(_calculator.CalculateExcel(byDay)));
+        var excel = _calculator.CalculateExcel(byDay);
+
+        Array.Reverse(byDay);
+        Apply(ByDayData, byDay, ByDayOrder, (a, b) =>
+            a.OvertimeMinutes == b.OvertimeMinutes && a.OvertimeThisWeek == b.OvertimeThisWeek && a.IsLastOfWeek == b.IsLastOfWeek &&
+            a.WorkMinutes == b.WorkMinutes && a.TravelMinutes == b.TravelMinutes && a.Start == b.Start);
+
+        Array.Reverse(byMonth);
+        Apply(ByMonthData, byMonth, ByMonthOrder, (a, b) =>
+            a.OvertimeMinutes == b.OvertimeMinutes && a.OvertimeTotal == b.OvertimeTotal);
+
+        Array.Reverse(excel);
+        Apply(ExcelData, excel, ExcelOrder, (a, b) =>
+            a.Start == b.Start && a.End == b.End && a.TravelStart == b.TravelStart && a.TravelEnd == b.TravelEnd);
+
+        return;
+
+        void Apply<T>(RangeObservableCollection<T> target, T[] items, Comparison<T> order, Func<T, T, bool> sameValues)
+        {
+            if (incremental) target.Update(items, order, sameValues);
+            else target.Reset(items);
+        }
     }
 }

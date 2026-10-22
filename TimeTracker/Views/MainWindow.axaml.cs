@@ -67,6 +67,43 @@ public partial class MainWindow : Window
         await ShowEditRecord(false, newRecord);
     }
 
+    private async void OnFlextime(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var dialog = new Flextime();
+            await dialog.ShowDialog(this);
+            if (!dialog.IsOk) return;
+
+            ViewModel.AddRecord(dialog.CreateRecord());
+            ViewModel.RecalculateAndSaveData();
+        }
+        catch (Exception exception)
+        {
+            Console.WriteLine(exception);
+        }
+    }
+
+    private async void OnDeleteRecord(object? sender, RoutedEventArgs e)
+    {
+        var selected = ViewModel.SelectedDaiy;
+        if (selected is null) return;
+
+        try
+        {
+            var dialog = new ConfirmDelete(selected);
+            await dialog.ShowDialog(this);
+            if (!dialog.IsOk) return;
+
+            ViewModel.DeleteRecord(selected);
+            ViewModel.RecalculateAndSaveData();
+        }
+        catch (Exception exception)
+        {
+            Console.WriteLine(exception);
+        }
+    }
+
     private async Task ShowEditRecord(bool editMode, TimeRecord? record)
     {
         if (record is null) return;

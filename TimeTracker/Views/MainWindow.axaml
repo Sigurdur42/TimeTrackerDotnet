@@ -53,7 +53,7 @@
             <Grid Grid.Row="1"
                   Grid.Column="1"
                   Grid.ColumnSpan="2"
-                  ColumnDefinitions="*,*,*">
+                  ColumnDefinitions="*,*,*,*">
                 <Button Grid.Row="0"
                         Grid.Column="0"
                         Classes="Small"
@@ -70,14 +70,23 @@
                         Click="OnEditRecord">
                     Edit...
                 </Button>
-                <!-- <Button Grid.Row="0" -->
-                <!--         Grid.Column="2" -->
-                <!--         Classes="Small" -->
-                <!--         HorizontalAlignment="Stretch" -->
-                <!--         Margin="5,0,5,0" -->
-                <!--         IsEnabled="False"> -->
-                <!--     Delete... -->
-                <!-- </Button> -->
+                <Button Grid.Row="0"
+                        Grid.Column="2"
+                        Classes="Small"
+                        HorizontalAlignment="Stretch"
+                        Margin="0,0,5,0"
+                        Click="OnFlextime">
+                    Gleitzeit...
+                </Button>
+                <Button Grid.Row="0"
+                        Grid.Column="3"
+                        Classes="Small"
+                        HorizontalAlignment="Stretch"
+                        Margin="0,0,5,0"
+                        IsEnabled="{Binding SelectedDaiy, Converter={x:Static ObjectConverters.IsNotNull}}"
+                        Click="OnDeleteRecord">
+                    Löschen...
+                </Button>
             </Grid>
         </Grid>
         <!-- Row with overview -->
@@ -246,15 +255,13 @@
                                         ToolTip.Tip="Copies the data into clipboard to be used with the Excel file"
                                         Click="OnCopyExcelData"
                                         Classes="Small">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{x:Static timeTracker:FontawesomeSymbols.FileExcel}"
-                                                       FontFamily="{StaticResource FaRegular}"
-                                                       VerticalAlignment="Center" />
-                                            <TextBlock
-                                                VerticalAlignment="Center"
-                                                Margin="5,0,0,0"
-                                                Text="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
-                                        </StackPanel>
+                                        <!-- A single TextBlock with runs keeps the per-row visual tree small -->
+                                        <TextBlock VerticalAlignment="Center">
+                                            <Run Text="{x:Static timeTracker:FontawesomeSymbols.FileExcel}"
+                                                 FontFamily="{StaticResource FaRegular}" />
+                                            <Run Text="  " />
+                                            <Run Text="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
+                                        </TextBlock>
                                     </Button>
 
                                 </DataTemplate>

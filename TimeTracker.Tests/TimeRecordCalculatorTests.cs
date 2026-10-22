@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Reflection;
 using TimeTracker.Controller;
 using TimeTracker.Models;
@@ -69,7 +69,7 @@ public class TimeRecordCalculatorTests
 
         var refDate = DateOnly.Parse(date, _culture);
         var found = result.First(_ => _.Date == refDate);
-        Assert.That(overtime, Is.EqualTo(found.OvertimeMinutes), "overtime");
+        Assert.That(found.OvertimeMinutes, Is.EqualTo(overtime), "overtime");
     }
 
     [TestCase("01.02.2024", "1:55")]
@@ -146,5 +146,16 @@ public class TimeRecordCalculatorTests
         var filtered = result.Where(_ => string.Compare(_.SortDisplay, date, StringComparison.Ordinal) <= 0).ToArray();
         var total = target.CalculateTotalOvertime(filtered);
         Assert.That(total, Is.EqualTo(overtime));
+    }
+
+    [Test]
+    public void TotalOfMonthsEqualsTotalOfDays()
+    {
+        var target = new TimeRecordCalculator();
+        var byDay = target.CalculateByDay(_data);
+
+        var total = target.CalculateTotalOvertime(target.CalculateByMonth(byDay));
+
+        Assert.That(total, Is.EqualTo(byDay.Sum(_ => _.OvertimeMinutes)));
     }
 }
