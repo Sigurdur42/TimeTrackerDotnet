@@ -131,33 +131,12 @@ public class MainWindowViewModel : ViewModelBase
         var byDay = _calculator.CalculateByDay(raw);
         Array.Sort(byDay, (a, b) => a.Date.CompareTo(b.Date));
 
-        var total = TimeSpan.Zero;
-        TimeRecordByDay? lastDay = null;
-        foreach (var item in byDay)
-        {
-            if (item.Date.DayOfWeek == DayOfWeek.Monday)
-            {
-                if (lastDay != null) lastDay.IsLastOfWeek = true;
-                total = TimeSpan.Zero;
-            }
-
-            total += item.Overtime;
-            item.OvertimeThisWeek = total;
-
-            lastDay = item;
-        }
-
-        if (lastDay != null) lastDay.IsLastOfWeek = true;
+        _calculator.CalculateWeeklyTotals(byDay);
 
         var byMonth = _calculator.CalculateByMonth(byDay);
         Array.Sort(byMonth, (a, b) => a.Date.CompareTo(b.Date));
 
-        total = TimeSpan.Zero;
-        foreach (var item in byMonth)
-        {
-            total += item.Overtime;
-            item.OvertimeTotal = total;
-        }
+        _calculator.CalculateRunningTotals(byMonth);
 
         TotalOvertime = TimeSpan.FromMinutes((double)_calculator.CalculateTotalOvertime(byMonth));
 

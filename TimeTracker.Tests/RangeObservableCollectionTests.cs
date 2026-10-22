@@ -1,4 +1,7 @@
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
+using System.Reflection;
+using TimeTracker.Controller;
+using TimeTracker.Models;
 using TimeTracker.ViewModels;
 
 namespace TimeTracker.Tests;
@@ -55,5 +58,38 @@ public class RangeObservableCollectionTests
         collection.Update([(3, "a")], Descending, (a, b) => a.Value == b.Value);
 
         Assert.That(collection, Is.EqualTo(new[] { (3, "a") }));
+    }
+
+    [Test]
+    public void UpdateWithRecalculatedDataEqualsReset()
+    {
+        var calculator = new TimeRecordCalculator();
+        var csvContent = new ResourceLoader().GetEmbeddedResourceString(Assembly.GetExecutingAssembly(), "DataFile.csv");
+        var records = new TimeRecordSerializer().Deserialize(csvContent).ToList();
+
+        var collection = new RangeObservableCollection<TimeRecordByDay>();
+        collection.Reset(CalculateByDayDescending(records));
+
+        // Edit a record, add a new day and remove all records of another day
+        records[10].End = records[10].End.AddMinutes(30);
+        records.Add(new TimeRecord { Date = new DateOnly(2030, 1, 7), Start = new TimeOnly(8, 0), End = new TimeOnly(17, 0) });
+        var removedDate = records[100].Date;
+        records.RemoveAll(_ => _.Date == removedDate);
+
+        var expected = CalculateByDayDescending(records);
+        collection.Update(expected, (a, b) => b.Date.CompareTo(a.Date), (a, b) =>
+            a.OvertimeMinutes == b.OvertimeMinutes && a.OvertimeThisWeek == b.OvertimeThisWeek && a.IsLastOfWeek == b.IsLastOfWeek);
+
+        Assert.That(collection.Select(_ => (_.Date, _.OvertimeMinutes, _.OvertimeThisWeek, _.IsLastOfWeek)),
+            Is.EqualTo(expected.Select(_ => (_.Date, _.OvertimeMinutes, _.OvertimeThisWeek, _.IsLastOfWeek))));
+
+        TimeRecordByDay[] CalculateByDayDescending(List<TimeRecord> data)
+        {
+            var byDay = calculator.CalculateByDay(data.ToArray());
+            Array.Sort(byDay, (a, b) => a.Date.CompareTo(b.Date));
+            calculator.CalculateWeeklyTotals(byDay);
+            Array.Reverse(byDay);
+            return byDay;
+        }
     }
 }

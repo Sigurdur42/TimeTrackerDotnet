@@ -96,6 +96,50 @@ public class TimeRecordCalculator
             .ToArray();
     }
 
+    /// <summary>
+    ///     Sets the overtime accumulated within each week (Monday to Sunday) and marks the last recorded day of each week.
+    ///     <paramref name="days" /> must be sorted ascending by date.
+    /// </summary>
+    public void CalculateWeeklyTotals(TimeRecordByDay[] days)
+    {
+        var total = TimeSpan.Zero;
+        TimeRecordByDay? lastDay = null;
+        foreach (var day in days)
+        {
+            // Compare the weeks instead of looking for a Monday, as the Monday may have no record (e.g. holiday)
+            if (lastDay != null && GetStartOfWeek(day.Date) != GetStartOfWeek(lastDay.Date))
+            {
+                lastDay.IsLastOfWeek = true;
+                total = TimeSpan.Zero;
+            }
+
+            total += day.Overtime;
+            day.OvertimeThisWeek = total;
+
+            lastDay = day;
+        }
+
+        if (lastDay != null) lastDay.IsLastOfWeek = true;
+    }
+
+    /// <summary>
+    ///     Sets the overtime accumulated since the first month. <paramref name="months" /> must be sorted ascending by date.
+    /// </summary>
+    public void CalculateRunningTotals(TimeRecordByMonth[] months)
+    {
+        var total = TimeSpan.Zero;
+        foreach (var month in months)
+        {
+            total += month.Overtime;
+            month.OvertimeTotal = total;
+        }
+    }
+
+    private static DateOnly GetStartOfWeek(DateOnly date)
+    {
+        return date.AddDays(-(((int)date.DayOfWeek + 6) % 7));
+    }
+
     public decimal CalculateTotalOvertime(IEnumerable<TimeRecordByMonth> records)
     {
         return records.Sum(m => m.OvertimeMinutes);
