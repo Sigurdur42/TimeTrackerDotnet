@@ -19,21 +19,36 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     public DateOnly Date
     {
         get => _date;
-        set => this.RaiseAndSetIfChanged(ref _date, value);
+        set
+        {
+            if (_date == value) return;
+            this.RaiseAndSetIfChanged(ref _date, value);
+            this.RaisePropertyChanged(nameof(Month));
+        }
     }
 
     [Index(1)]
     public TimeOnly Start
     {
         get => _start;
-        set => this.RaiseAndSetIfChanged(ref _start, value);
+        set
+        {
+            if (_start == value) return;
+            this.RaiseAndSetIfChanged(ref _start, value);
+            this.RaisePropertyChanged(nameof(Duration));
+        }
     }
 
     [Index(2)]
     public TimeOnly End
     {
         get => _end;
-        set => this.RaiseAndSetIfChanged(ref _end, value);
+        set
+        {
+            if (_end == value) return;
+            this.RaiseAndSetIfChanged(ref _end, value);
+            this.RaisePropertyChanged(nameof(Duration));
+        }
     }
 
     [Index(3)]
@@ -54,7 +69,12 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     public string? Comment
     {
         get => _comment;
-        set => this.RaiseAndSetIfChanged(ref _comment, value);
+        set
+        {
+            if (_comment == value) return;
+            this.RaiseAndSetIfChanged(ref _comment, value);
+            this.RaisePropertyChanged(nameof(Category));
+        }
     }
 
     [Ignore] public TimeSpan Duration => End - Start;

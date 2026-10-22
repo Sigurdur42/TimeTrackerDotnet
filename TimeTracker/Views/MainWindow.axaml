@@ -246,15 +246,13 @@
                                         ToolTip.Tip="Copies the data into clipboard to be used with the Excel file"
                                         Click="OnCopyExcelData"
                                         Classes="Small">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{x:Static timeTracker:FontawesomeSymbols.FileExcel}"
-                                                       FontFamily="{StaticResource FaRegular}"
-                                                       VerticalAlignment="Center" />
-                                            <TextBlock
-                                                VerticalAlignment="Center"
-                                                Margin="5,0,0,0"
-                                                Text="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
-                                        </StackPanel>
+                                        <!-- A single TextBlock with runs keeps the per-row visual tree small -->
+                                        <TextBlock VerticalAlignment="Center">
+                                            <Run Text="{x:Static timeTracker:FontawesomeSymbols.FileExcel}"
+                                                 FontFamily="{StaticResource FaRegular}" />
+                                            <Run Text="  " />
+                                            <Run Text="{Binding Date, Converter={StaticResource DateOnlyDisplayConverter}, Mode=OneWay}" />
+                                        </TextBlock>
                                     </Button>
 
                                 </DataTemplate>
