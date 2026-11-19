@@ -144,6 +144,29 @@ public class TimeRecordCalculatorRuleTests
     }
 
     [Test]
+    public void WorkAndPassiveTravelResultInTotalWorkingTime()
+    {
+        // Monday: 7:15 h work and 6 h passive travel
+        var records = new[]
+        {
+            Record("2026-11-16", "08:00", "15:15"),
+            Record("2026-11-16", "15:15", "21:15", passive: true)
+        };
+
+        var day = SingleDay(records);
+        var category = _target.CalculateCategorySummary(records);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.WorkMinutes, Is.EqualTo(7 * 60 + 15));
+            Assert.That(day.TravelPassiveMinutes, Is.EqualTo(6 * 60));
+            Assert.That(day.WorkMinutes + day.TravelActiveMinutes + day.TravelPassiveMinutes, Is.EqualTo(13 * 60 + 15), "Total time");
+            Assert.That(category.Single().Duration, Is.EqualTo(new TimeSpan(13, 15, 0)), "Total time of the category");
+            Assert.That(day.Overtime, Is.EqualTo(new TimeSpan(5, 15, 0)), "Overtime beyond eight hours");
+        });
+    }
+
+    [Test]
     public void ActiveAndPassiveTravelAreSummedSeparately()
     {
         var day = SingleDay(
