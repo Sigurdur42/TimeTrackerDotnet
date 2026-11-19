@@ -38,7 +38,8 @@
                    Text="{Binding Duration, Converter={StaticResource DurationDisplayConverter}}" />
         <StackPanel Grid.Column="1" Grid.Row="5" Margin="0,3,0,0" Orientation="Horizontal" Spacing="10">
             <CheckBox IsEnabled="False" IsChecked="{Binding AllOvertime, Mode=OneWay}">Overtime</CheckBox>
-            <CheckBox IsEnabled="False" IsChecked="{Binding Travel, Mode=OneWay}">Travel</CheckBox>
+            <CheckBox IsEnabled="False" IsChecked="{Binding TravelActive, Mode=OneWay}">Travel (active)</CheckBox>
+            <CheckBox IsEnabled="False" IsChecked="{Binding TravelPassive, Mode=OneWay}">Travel (passive)</CheckBox>
         </StackPanel>
         <TextBlock Grid.Column="1" Grid.Row="6" Margin="0,3,0,0" MinWidth="300" TextWrapping="Wrap"
                    Text="{Binding Comment}" />

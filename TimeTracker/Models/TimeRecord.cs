@@ -21,7 +21,8 @@ public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     private DateOnly _date;
     private TimeOnly _end;
     private TimeOnly _start;
-    private bool _travel;
+    private bool _travelActive;
+    private bool _travelPassive;
 
     [CsvColumn(Index = 0)]
     [CsvFormat("dd.MM.yyyy", "d.M.yyyy")]
@@ -70,12 +71,34 @@ public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         set => this.RaiseAndSetIfChanged(ref _allOvertime, value);
     }
 
+    /// <summary>
+    ///     Active travel time. A record is either active or passive travel, never both.
+    /// </summary>
     [CsvColumn(Index = 5)]
     [CsvConverter(typeof(PythonBooleanConverter))]
-    public bool Travel
+    public bool TravelActive
     {
-        get => _travel;
-        set => this.RaiseAndSetIfChanged(ref _travel, value);
+        get => _travelActive;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _travelActive, value);
+            if (value) TravelPassive = false;
+        }
+    }
+
+    /// <summary>
+    ///     Passive travel time. A record is either active or passive travel, never both.
+    /// </summary>
+    [CsvColumn(Index = 6)]
+    [CsvConverter(typeof(PythonBooleanConverter))]
+    public bool TravelPassive
+    {
+        get => _travelPassive;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _travelPassive, value);
+            if (value) TravelActive = false;
+        }
     }
 
     [CsvColumn(Index = 4)]
@@ -128,7 +151,7 @@ public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
-        return Date.Equals(other.Date) && Start.Equals(other.Start) && End.Equals(other.End) && AllOvertime == other.AllOvertime && Comment == other.Comment && Travel == other.Travel;
+        return Date.Equals(other.Date) && Start.Equals(other.Start) && End.Equals(other.End) && AllOvertime == other.AllOvertime && Comment == other.Comment && TravelActive == other.TravelActive && TravelPassive == other.TravelPassive;
     }
 
     public override bool Equals(object? obj)
@@ -140,7 +163,7 @@ public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Date, Start, End, AllOvertime, Comment, Travel);
+        return HashCode.Combine(Date, Start, End, AllOvertime, Comment, TravelActive, TravelPassive);
     }
 
     /// <summary>
@@ -163,7 +186,8 @@ public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         other.Start = Start;
         other.End = End;
         other.Comment = Comment;
-        other.Travel = Travel;
+        other.TravelActive = TravelActive;
+        other.TravelPassive = TravelPassive;
         other.AllOvertime = AllOvertime;
     }
 }

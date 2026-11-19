@@ -151,7 +151,7 @@ public class MainWindowViewModel : ViewModelBase
         var categorized = _calculator.CalculateCategorySummary(raw);
         Array.Sort(categorized, CategorizedOrder);
         Apply(CategorizedData, categorized, CategorizedOrder, (a, b) =>
-            a.Category == b.Category && a.WorkMinutes == b.WorkMinutes && a.TravelMinutes == b.TravelMinutes);
+            a.Category == b.Category && a.WorkMinutes == b.WorkMinutes && a.TravelActiveMinutes == b.TravelActiveMinutes && a.TravelPassiveMinutes == b.TravelPassiveMinutes);
 
         // Ascending order is needed for the running totals, the display order is the reverse
         var byDay = _calculator.CalculateByDay(raw);
@@ -171,7 +171,7 @@ public class MainWindowViewModel : ViewModelBase
         Array.Reverse(byDay);
         Apply(ByDayData, byDay, ByDayOrder, (a, b) =>
             a.OvertimeMinutes == b.OvertimeMinutes && a.OvertimeThisWeek == b.OvertimeThisWeek && a.IsLastOfWeek == b.IsLastOfWeek &&
-            a.WorkMinutes == b.WorkMinutes && a.TravelMinutes == b.TravelMinutes && a.Start == b.Start);
+            a.WorkMinutes == b.WorkMinutes && a.TravelActiveMinutes == b.TravelActiveMinutes && a.TravelPassiveMinutes == b.TravelPassiveMinutes && a.Start == b.Start);
 
         Array.Reverse(byMonth);
         Apply(ByMonthData, byMonth, ByMonthOrder, (a, b) =>
@@ -179,7 +179,8 @@ public class MainWindowViewModel : ViewModelBase
 
         Array.Reverse(excel);
         Apply(ExcelData, excel, ExcelOrder, (a, b) =>
-            a.Start == b.Start && a.End == b.End && a.TravelStart == b.TravelStart && a.TravelEnd == b.TravelEnd);
+            a.Start == b.Start && a.End == b.End && a.TravelActiveStart == b.TravelActiveStart && a.TravelActiveEnd == b.TravelActiveEnd &&
+            a.TravelPassiveStart == b.TravelPassiveStart && a.TravelPassiveEnd == b.TravelPassiveEnd);
 
         return;
 

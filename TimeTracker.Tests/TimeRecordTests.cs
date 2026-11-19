@@ -31,6 +31,41 @@ public class TimeRecordTests
         Assert.That(result, Is.EqualTo(expectedCategory));
     }
 
+    [Test]
+    public void ActiveAndPassiveTravelExcludeEachOther()
+    {
+        var target = new TimeRecord { TravelActive = true };
+
+        target.TravelPassive = true;
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.TravelPassive, Is.True);
+            Assert.That(target.TravelActive, Is.False);
+        });
+
+        target.TravelActive = true;
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.TravelActive, Is.True);
+            Assert.That(target.TravelPassive, Is.False);
+        });
+    }
+
+    [Test]
+    public void CopyToCopiesPassiveTravel()
+    {
+        var source = new TimeRecord { TravelPassive = true };
+        var target = new TimeRecord { TravelActive = true };
+
+        source.CopyTo(target);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.TravelPassive, Is.True);
+            Assert.That(target.TravelActive, Is.False);
+        });
+    }
+
     [TestCase("01.01.2024", "01.2024")]
     [TestCase("31.01.2024", "01.2024")]
     public void MonthTests(string date, string expectedMonth)

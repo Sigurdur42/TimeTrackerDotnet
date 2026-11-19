@@ -273,10 +273,14 @@
                                             Binding="{Binding Start, StringFormat=HH:mm, Mode=OneWay}" />
                         <DataGridTextColumn Header="End"
                                             Binding="{Binding End, StringFormat=HH:mm, Mode=OneWay}" />
-                        <DataGridTextColumn Header="TravelStart"
-                                            Binding="{Binding TravelStart, StringFormat=HH:mm, Mode=OneWay}" />
-                        <DataGridTextColumn Header="TravelEnd"
-                                            Binding="{Binding TravelEnd, StringFormat=HH:mm, Mode=OneWay}" />
+                        <DataGridTextColumn Header="Travel (active) Start"
+                                            Binding="{Binding TravelActiveStart, StringFormat=HH:mm, Mode=OneWay}" />
+                        <DataGridTextColumn Header="Travel (active) End"
+                                            Binding="{Binding TravelActiveEnd, StringFormat=HH:mm, Mode=OneWay}" />
+                        <DataGridTextColumn Header="Travel (passive) Start"
+                                            Binding="{Binding TravelPassiveStart, StringFormat=HH:mm, Mode=OneWay}" />
+                        <DataGridTextColumn Header="Travel (passive) End"
+                                            Binding="{Binding TravelPassiveEnd, StringFormat=HH:mm, Mode=OneWay}" />
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>

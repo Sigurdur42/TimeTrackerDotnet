@@ -16,11 +16,13 @@ public class TimeRecordCalculator
         foreach (var dateGroup in timeRecords.GroupBy(_ => _.Date))
         foreach (var item in dateGroup.GroupBy(_ => _.Category, StringComparer.OrdinalIgnoreCase))
         {
-            double work = 0, travel = 0;
+            double work = 0, travelActive = 0, travelPassive = 0;
             foreach (var record in item)
             {
-                if (record.Travel) travel += record.Duration.TotalMinutes;
-                else work += record.Duration.TotalMinutes;
+                var minutes = record.Duration.TotalMinutes;
+                if (record.TravelActive) travelActive += minutes;
+                else if (record.TravelPassive) travelPassive += minutes;
+                else work += minutes;
             }
 
             result.Add(new TimeRecordCategorized
@@ -28,7 +30,8 @@ public class TimeRecordCalculator
                 Date = dateGroup.Key,
                 Category = item.Key,
                 WorkMinutes = (decimal)work,
-                TravelMinutes = (decimal)travel
+                TravelActiveMinutes = (decimal)travelActive,
+                TravelPassiveMinutes = (decimal)travelPassive
             });
         }
 
@@ -40,7 +43,7 @@ public class TimeRecordCalculator
         var result = new List<TimeRecordByDay>();
         foreach (var dateGroup in timeRecords.GroupBy(_ => _.Date))
         {
-            double workSum = 0, travelSum = 0, forceOvertimeSum = 0, flextimeSum = 0;
+            double workSum = 0, travelActiveSum = 0, travelPassiveSum = 0, forceOvertimeSum = 0, flextimeSum = 0;
             TimeOnly? firstStart = null, firstWorkStart = null;
 
             foreach (var record in dateGroup)
@@ -52,9 +55,13 @@ public class TimeRecordCalculator
                     continue;
                 }
 
-                if (record.Travel)
+                if (record.TravelActive)
                 {
-                    travelSum += minutes;
+                    travelActiveSum += minutes;
+                }
+                else if (record.TravelPassive)
+                {
+                    travelPassiveSum += minutes;
                 }
                 else
                 {
@@ -67,10 +74,11 @@ public class TimeRecordCalculator
             }
 
             var work = (decimal)workSum;
-            var travel = (decimal)travelSum;
+            var travelActive = (decimal)travelActiveSum;
+            var travelPassive = (decimal)travelPassiveSum;
             var forceOvertime = (decimal)forceOvertimeSum;
             var flextime = (decimal)flextimeSum;
-            var totalNormal = work + travel - forceOvertime;
+            var totalNormal = work + travelActive + travelPassive - forceOvertime;
 
             // Flextime only counts on days without any other record. Otherwise the missing time is already
             // part of the working time compared to the eight hours.
@@ -86,7 +94,8 @@ public class TimeRecordCalculator
             {
                 Date = dateGroup.Key,
                 OvertimeMinutes = total,
-                TravelMinutes = travel,
+                TravelActiveMinutes = travelActive,
+                TravelPassiveMinutes = travelPassive,
                 WorkMinutes = work,
                 FlextimeMinutes = flextime,
                 Start = firstWorkStart ?? firstStart ?? TimeOnly.MinValue
@@ -160,31 +169,46 @@ public class TimeRecordCalculator
     public TimeRecordExcel[] CalculateExcel(TimeRecordByDay[] timeRecords)
     {
         // Days with flextime only have no times to be entered
-        return timeRecords.Where(_ => _.WorkMinutes > 0 || _.TravelMinutes > 0 || _.FlextimeMinutes == 0).Select(_ =>
+        return timeRecords
+            .Where(_ => _.WorkMinutes > 0 || _.TravelActiveMinutes > 0 || _.TravelPassiveMinutes > 0 || _.FlextimeMinutes == 0)
+            .Select(_ =>
             {
-                var hasWorkTime = _.WorkMinutes > 0;
-                var hasTravelTime = _.TravelMinutes > 0;
+                var result = new TimeRecordExcel { Date = _.Date };
 
-                if (!hasWorkTime && hasTravelTime)
-                    return new TimeRecordExcel
-                    {
-                        Date = _.Date,
-                        TravelStart = _.Start,
-                        TravelEnd = _.Start.AddMinutes((double)_.TravelMinutes)
-                    };
+                // The span covered so far: the work time, then each travel time is wrapped around it
+                TimeOnly? spanStart = null, spanEnd = null;
 
-                var startTime = _.Start;
-                var endTime = _.Start.AddMinutes((double)_.WorkMinutes + 45);
-                var halfTravelTime = (double)_.TravelMinutes / 2;
-
-                return new TimeRecordExcel
+                var isTravelOnly = _.WorkMinutes <= 0 && (_.TravelActiveMinutes > 0 || _.TravelPassiveMinutes > 0);
+                if (!isTravelOnly)
                 {
-                    Date = _.Date,
-                    Start = startTime,
-                    End = endTime,
-                    TravelStart = hasTravelTime ? startTime.AddMinutes(-halfTravelTime) : null,
-                    TravelEnd = hasTravelTime ? endTime.AddMinutes(halfTravelTime) : null
-                };
+                    spanStart = result.Start = _.Start;
+                    spanEnd = result.End = _.Start.AddMinutes((double)_.WorkMinutes + 45);
+                }
+
+                (result.TravelActiveStart, result.TravelActiveEnd) = WrapTravel(_.TravelActiveMinutes);
+                (result.TravelPassiveStart, result.TravelPassiveEnd) = WrapTravel(_.TravelPassiveMinutes);
+
+                return result;
+
+                // Without a span yet the travel starts with the day, otherwise half of it is put before and after the span
+                (TimeOnly?, TimeOnly?) WrapTravel(decimal minutes)
+                {
+                    if (minutes <= 0) return (null, null);
+
+                    if (spanStart is null || spanEnd is null)
+                    {
+                        spanStart = _.Start;
+                        spanEnd = _.Start.AddMinutes((double)minutes);
+                    }
+                    else
+                    {
+                        var half = (double)minutes / 2;
+                        spanStart = spanStart.Value.AddMinutes(-half);
+                        spanEnd = spanEnd.Value.AddMinutes(half);
+                    }
+
+                    return (spanStart, spanEnd);
+                }
             })
             .ToArray();
     }
