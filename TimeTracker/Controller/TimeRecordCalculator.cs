@@ -9,6 +9,25 @@ public class TimeRecordCalculator
 {
     private const decimal EightHours = 8 * 60;
 
+    /// <summary>
+    ///     First day the rules of <see cref="ApplyRulesOf2026" /> apply, earlier days are calculated as before
+    /// </summary>
+    public static readonly DateOnly RulesOf2026Start = new(2026, 12, 1);
+
+    public const decimal MaxWorkMinutes = 10 * 60;
+    public const decimal FullPassiveTravelMinutes = 6 * 60;
+    public const decimal ReducedPassiveTravelFactor = 0.5m;
+    public const double DefaultDailyTargetHours = 8;
+
+    private readonly decimal _dailyTargetMinutes;
+
+    /// <param name="dailyTargetHours">Target working hours of a weekday, used by the rules since <see cref="RulesOf2026Start" /></param>
+    public TimeRecordCalculator(double dailyTargetHours = DefaultDailyTargetHours)
+    {
+        if (dailyTargetHours is <= 0 or > 24) throw new ArgumentOutOfRangeException(nameof(dailyTargetHours), dailyTargetHours, "Must be between 0 and 24 hours");
+        _dailyTargetMinutes = (decimal)dailyTargetHours * 60;
+    }
+
     public TimeRecordCategorized[] CalculateCategorySummary(TimeRecord[] timeRecords)
     {
         var result = new List<TimeRecordCategorized>();
@@ -73,36 +92,78 @@ public class TimeRecordCalculator
                 if (firstStart is null || record.Start < firstStart) firstStart = record.Start;
             }
 
-            var work = (decimal)workSum;
-            var travelActive = (decimal)travelActiveSum;
-            var travelPassive = (decimal)travelPassiveSum;
-            var forceOvertime = (decimal)forceOvertimeSum;
-            var flextime = (decimal)flextimeSum;
-            var totalNormal = work + travelActive + travelPassive - forceOvertime;
-
-            // Flextime only counts on days without any other record. Otherwise the missing time is already
-            // part of the working time compared to the eight hours.
-            var total = firstStart is null
-                ? -flextime
-                : dateGroup.Key.DayOfWeek switch
-                {
-                    DayOfWeek.Sunday or DayOfWeek.Saturday => totalNormal + forceOvertime,
-                    _ => forceOvertime > 0 ? forceOvertime + (totalNormal > 0 ? totalNormal - EightHours : 0) : totalNormal - EightHours + forceOvertime
-                };
-
-            result.Add(new TimeRecordByDay
+            var day = new TimeRecordByDay
             {
                 Date = dateGroup.Key,
-                OvertimeMinutes = total,
-                TravelActiveMinutes = travelActive,
-                TravelPassiveMinutes = travelPassive,
-                WorkMinutes = work,
-                FlextimeMinutes = flextime,
+                TravelActiveMinutes = (decimal)travelActiveSum,
+                TravelPassiveMinutes = (decimal)travelPassiveSum,
+                WorkMinutes = (decimal)workSum,
+                FlextimeMinutes = (decimal)flextimeSum,
                 Start = firstWorkStart ?? firstStart ?? TimeOnly.MinValue
-            });
+            };
+
+            var forceOvertime = (decimal)forceOvertimeSum;
+
+            // Flextime only counts on days without any other record. Otherwise the missing time is already
+            // part of the working time compared to the target hours.
+            if (firstStart is null)
+                day.OvertimeMinutes = -day.FlextimeMinutes;
+            else if (day.Date < RulesOf2026Start)
+                day.OvertimeMinutes = CalculateOvertime(day.Date, day.WorkMinutes + day.TravelActiveMinutes + day.TravelPassiveMinutes, forceOvertime, EightHours);
+            else
+                ApplyRulesOf2026(day, forceOvertime);
+
+            result.Add(day);
         }
 
         return result.ToArray();
+    }
+
+    /// <summary>
+    ///     Rules valid since <see cref="RulesOf2026Start" />:
+    ///     <list type="bullet">
+    ///         <item>Work and active travel count up to <see cref="MaxWorkMinutes" /> a day, the rest is lost</item>
+    ///         <item>Work and active travel get a surcharge of 25% on Saturday and 100% on Sunday</item>
+    ///         <item>Passive travel on days without work counts up to the daily target hours</item>
+    ///         <item>Passive travel on days with work counts fully up to <see cref="FullPassiveTravelMinutes" />, the rest by half</item>
+    ///     </list>
+    /// </summary>
+    private void ApplyRulesOf2026(TimeRecordByDay day, decimal forceOvertime)
+    {
+        var work = day.WorkMinutes + day.TravelActiveMinutes;
+        var creditedWork = Math.Min(work, MaxWorkMinutes);
+        day.WorkCapLossMinutes = work - creditedWork;
+
+        var surchargeFactor = day.Date.DayOfWeek switch
+        {
+            DayOfWeek.Saturday => 0.25m,
+            DayOfWeek.Sunday => 1m,
+            _ => 0m
+        };
+        day.SurchargeMinutes = creditedWork * surchargeFactor;
+
+        var passive = day.TravelPassiveMinutes;
+        var creditedPassive = work > 0
+            ? Math.Min(passive, FullPassiveTravelMinutes) + Math.Max(passive - FullPassiveTravelMinutes, 0) * ReducedPassiveTravelFactor
+            : Math.Min(passive, _dailyTargetMinutes);
+        day.PassiveTravelLossMinutes = passive - creditedPassive;
+
+        var credited = creditedWork + day.SurchargeMinutes + creditedPassive;
+        day.OvertimeMinutes = CalculateOvertime(day.Date, credited, Math.Min(forceOvertime, credited), _dailyTargetMinutes);
+    }
+
+    /// <summary>
+    ///     On weekends all time is overtime, on weekdays the time beyond the target. Time marked as all overtime is not
+    ///     compared to the target.
+    /// </summary>
+    private static decimal CalculateOvertime(DateOnly date, decimal total, decimal forceOvertime, decimal targetMinutes)
+    {
+        var totalNormal = total - forceOvertime;
+        return date.DayOfWeek switch
+        {
+            DayOfWeek.Sunday or DayOfWeek.Saturday => total,
+            _ => forceOvertime > 0 ? forceOvertime + (totalNormal > 0 ? totalNormal - targetMinutes : 0) : totalNormal - targetMinutes
+        };
     }
 
     public TimeRecordByMonth[] CalculateByMonth(TimeRecordByDay[] timeRecords)

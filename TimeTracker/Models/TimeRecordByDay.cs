@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using ReactiveUI;
 
@@ -57,6 +58,46 @@ public class TimeRecordByDay : ReactiveObject
     {
         get => _overtimeThisWeek;
         set => this.RaiseAndSetIfChanged(ref _overtimeThisWeek, value);
+    }
+
+    /// <summary>
+    ///     Work and active travel beyond the daily maximum, which is not counted
+    /// </summary>
+    public decimal WorkCapLossMinutes { get; set; }
+
+    /// <summary>
+    ///     Passive travel that is not counted due to its limitation
+    /// </summary>
+    public decimal PassiveTravelLossMinutes { get; set; }
+
+    /// <summary>
+    ///     Weekend surcharge added to the work and active travel
+    /// </summary>
+    public decimal SurchargeMinutes { get; set; }
+
+    public bool IsOverMaxWorkTime => WorkCapLossMinutes > 0;
+
+    public bool HasLoss => WorkCapLossMinutes > 0 || PassiveTravelLossMinutes > 0;
+
+    public TimeSpan Loss => TimeSpan.FromMinutes((double)(WorkCapLossMinutes + PassiveTravelLossMinutes));
+
+    public string? LossDescription
+    {
+        get
+        {
+            if (!HasLoss) return null;
+
+            var lines = new List<string>();
+            if (WorkCapLossMinutes > 0) lines.Add($"Work time over 10 h: {Format(WorkCapLossMinutes)} not counted");
+            if (PassiveTravelLossMinutes > 0) lines.Add($"Travel (passive) limited: {Format(PassiveTravelLossMinutes)} not counted");
+            return string.Join(Environment.NewLine, lines);
+
+            static string Format(decimal minutes)
+            {
+                var time = TimeSpan.FromMinutes((double)minutes);
+                return $"{(int)time.TotalHours:00}:{time.Minutes:00}";
+            }
+        }
     }
 
     public TimeSpan Overtime => TimeSpan.FromMinutes((double)OvertimeMinutes);

@@ -13,7 +13,7 @@ public class MainWindowViewModel : ViewModelBase
 {
     public const string DefaultDataFileName = "TimeTracker.csv";
 
-    private readonly TimeRecordCalculator _calculator = new();
+    private readonly TimeRecordCalculator _calculator;
     private readonly TimeRecordSerializer _serializer = new();
     private readonly ILocalSettings _settings;
     private TimeRecord? _selectedDaiy;
@@ -30,6 +30,7 @@ public class MainWindowViewModel : ViewModelBase
         var special = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var appDirectory = Path.Combine(special, "TimeTracker");
         _settings = new ConfigurationBuilder<ILocalSettings>().UseJsonFile(Path.Combine(appDirectory, "TimeTrackerSettings.json")).Build();
+        _calculator = CreateCalculator(_settings.DailyTargetHours);
 
         try
         {
@@ -39,6 +40,20 @@ public class MainWindowViewModel : ViewModelBase
         {
             // TODO: Better error handling
             Console.WriteLine(exception);
+        }
+    }
+
+    private static TimeRecordCalculator CreateCalculator(double dailyTargetHours)
+    {
+        try
+        {
+            return new TimeRecordCalculator(dailyTargetHours);
+        }
+        catch (ArgumentOutOfRangeException exception)
+        {
+            // An invalid setting must not prevent the application from starting
+            Console.WriteLine(exception);
+            return new TimeRecordCalculator();
         }
     }
 
@@ -171,7 +186,8 @@ public class MainWindowViewModel : ViewModelBase
         Array.Reverse(byDay);
         Apply(ByDayData, byDay, ByDayOrder, (a, b) =>
             a.OvertimeMinutes == b.OvertimeMinutes && a.OvertimeThisWeek == b.OvertimeThisWeek && a.IsLastOfWeek == b.IsLastOfWeek &&
-            a.WorkMinutes == b.WorkMinutes && a.TravelActiveMinutes == b.TravelActiveMinutes && a.TravelPassiveMinutes == b.TravelPassiveMinutes && a.Start == b.Start);
+            a.WorkMinutes == b.WorkMinutes && a.TravelActiveMinutes == b.TravelActiveMinutes && a.TravelPassiveMinutes == b.TravelPassiveMinutes && a.Start == b.Start &&
+            a.WorkCapLossMinutes == b.WorkCapLossMinutes && a.PassiveTravelLossMinutes == b.PassiveTravelLossMinutes && a.SurchargeMinutes == b.SurchargeMinutes);
 
         Array.Reverse(byMonth);
         Apply(ByMonthData, byMonth, ByMonthOrder, (a, b) =>

@@ -188,6 +188,25 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Loss"
+                                                    Width="Auto">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <!-- Time not counted due to the rules since 01.12.2026 (more than 10 h of work, limited passive travel), the tool tip names the reason -->
+                                        <TextBlock
+                                            Margin="3,0,3,0"
+                                            Foreground="OrangeRed"
+                                            HorizontalAlignment="Right"
+                                            IsVisible="{Binding HasLoss, Mode=OneWay}"
+                                            ToolTip.Tip="{Binding LossDescription, Mode=OneWay}">
+                                            <Run Text="{x:Static timeTracker:FontawesomeSymbols.TriangleWarning}"
+                                                 FontFamily="{StaticResource FaSolid}" />
+                                            <Run Text="  " />
+                                            <Run Text="{Binding Loss, Converter={StaticResource OvertimeDisplayConverter}, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
