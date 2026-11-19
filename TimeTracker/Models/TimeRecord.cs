@@ -1,12 +1,15 @@
 using System;
 using System.Diagnostics;
-using CsvHelper.Configuration.Attributes;
+using CsvHelper;
 using ReactiveUI;
+using TimeTracker.Controller;
 
 namespace TimeTracker.Models;
 
+[CsvRecord]
+[CsvIgnoreBase]
 [DebuggerDisplay("{Date} - {Start} - {End} - {Duration}")]
-public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
+public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
 {
     /// <summary>
     ///     Comment (category) of records that reduce the overtime instead of being working time
@@ -20,7 +23,8 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     private TimeOnly _start;
     private bool _travel;
 
-    [Index(0)]
+    [CsvColumn(Index = 0)]
+    [CsvFormat("dd.MM.yyyy", "d.M.yyyy")]
     public DateOnly Date
     {
         get => _date;
@@ -32,7 +36,8 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         }
     }
 
-    [Index(1)]
+    [CsvColumn(Index = 1)]
+    [CsvConverter(typeof(TimeOnlyConverter))]
     public TimeOnly Start
     {
         get => _start;
@@ -44,7 +49,8 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         }
     }
 
-    [Index(2)]
+    [CsvColumn(Index = 2)]
+    [CsvConverter(typeof(TimeOnlyConverter))]
     public TimeOnly End
     {
         get => _end;
@@ -56,21 +62,23 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         }
     }
 
-    [Index(3)]
+    [CsvColumn(Index = 3)]
+    [CsvConverter(typeof(PythonBooleanConverter))]
     public bool AllOvertime
     {
         get => _allOvertime;
         set => this.RaiseAndSetIfChanged(ref _allOvertime, value);
     }
 
-    [Index(5)]
+    [CsvColumn(Index = 5)]
+    [CsvConverter(typeof(PythonBooleanConverter))]
     public bool Travel
     {
         get => _travel;
         set => this.RaiseAndSetIfChanged(ref _travel, value);
     }
 
-    [Index(4)]
+    [CsvColumn(Index = 4)]
     public string? Comment
     {
         get => _comment;
@@ -82,9 +90,9 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         }
     }
 
-    [Ignore] public TimeSpan Duration => End - Start;
+    [CsvIgnore] public TimeSpan Duration => End - Start;
 
-    [Ignore]
+    [CsvIgnore]
     public string Category
     {
         get
@@ -104,9 +112,9 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         }
     }
 
-    [Ignore] public bool IsFlextime => string.Equals(Category, FlextimeCategory, StringComparison.OrdinalIgnoreCase);
+    [CsvIgnore] public bool IsFlextime => string.Equals(Category, FlextimeCategory, StringComparison.OrdinalIgnoreCase);
 
-    [Ignore]
+    [CsvIgnore]
     public string Month
     {
         get

@@ -37,6 +37,17 @@ public class CsvConfigurationTests
     }
 
     [Test]
+    public void SerializedOutputMatchesExistingFileFormat()
+    {
+        var target = new TimeRecordSerializer();
+        var csvContent = _resourceLoader.GetEmbeddedResourceString(_assembly, "DataFile.csv").Replace("\r\n", "\n");
+
+        var writtenData = target.Serialize(target.Deserialize(csvContent));
+
+        Assert.That(writtenData, Is.EqualTo(csvContent));
+    }
+
+    [Test]
     public void TestLoadDataFile()
     {
         var target = new TimeRecordSerializer();

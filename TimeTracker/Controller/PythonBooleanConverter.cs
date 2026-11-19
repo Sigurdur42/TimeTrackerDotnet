@@ -1,29 +1,19 @@
 using CsvHelper;
-using CsvHelper.Configuration;
-using CsvHelper.TypeConversion;
 
 namespace TimeTracker.Controller;
 
-public class PythonBooleanConverter : BooleanConverter
+/// <summary>
+///     Reads an empty field as <c>false</c> and writes <c>false</c> as an empty field (format of the original Python tool).
+/// </summary>
+public sealed class PythonBooleanConverter : ICsvConverter<bool>
 {
-    public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
+    public bool Read(CsvReader reader, int index)
     {
-        text = text?.Trim();
-
-        if (string.IsNullOrEmpty(text)) text = "false";
-
-        return base.ConvertFromString(text, row, memberMapData);
+        return !reader.IsEmpty(index) && reader.Parse<bool>(index);
     }
 
-    public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
+    public void Write(CsvWriter writer, bool value)
     {
-        var result = base.ConvertToString(value, row, memberMapData);
-        result = result switch
-        {
-            "False" => "",
-            _ => result
-        };
-
-        return result;
+        writer.WriteField(value ? "True" : "");
     }
 }

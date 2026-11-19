@@ -4,22 +4,30 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using CsvHelper;
-using CsvHelper.Configuration;
 using TimeTracker.Models;
 
 namespace TimeTracker.Controller;
 
 public class TimeRecordSerializer
 {
-    private static readonly CsvConfiguration Configuration = new(new CultureInfo("de-de"))
+    private static readonly CultureInfo Culture = new("de-de");
+
+    private static readonly CsvReaderOptions ReaderOptions = CsvReaderOptions.Default with
     {
-        NewLine = "\n",
-        Encoding = Encoding.UTF8,
-        HasHeaderRecord = false
+        Separator = ';',
+        HasHeader = false,
+        FormatProvider = Culture
     };
 
-    private static readonly PythonBooleanConverter BooleanConverter = new();
-    private static readonly TimeOnlyConverter TimeConverter = new();
+    private static readonly CsvWriterOptions WriterOptions = CsvWriterOptions.Default with
+    {
+        Separator = ';',
+        HasHeader = false,
+        NewLine = "\n",
+        // quote values with leading/trailing whitespace as CsvHelper 33 did, so existing files stay unchanged
+        Quoting = CsvQuoting.WhenNeededOrWhitespace,
+        FormatProvider = Culture
+    };
 
     public TimeRecord[] Deserialize(FileInfo file)
     {
@@ -35,19 +43,18 @@ public class TimeRecordSerializer
 
     private static TimeRecord[] Deserialize(TextReader reader)
     {
-        using var csv = new CsvReader(reader, Configuration);
-        csv.Context.TypeConverterCache.AddConverter<bool>(BooleanConverter);
-        csv.Context.TypeConverterCache.AddConverter<TimeOnly>(TimeConverter);
+        using var csv = CsvReader.Create(reader, ReaderOptions, true);
         return csv.GetRecords<TimeRecord>().ToArray();
     }
 
     public string Serialize(TimeRecord[] records)
     {
         using var writer = new StringWriter();
-        using var csv = new CsvWriter(writer, Configuration);
-        csv.Context.TypeConverterCache.AddConverter<bool>(BooleanConverter);
-        csv.Context.TypeConverterCache.AddConverter<TimeOnly>(TimeConverter);
-        csv.WriteRecords(records);
+        using (var csv = CsvWriter.Create(writer, WriterOptions, true))
+        {
+            csv.WriteRecords(records);
+        }
+
         return writer.ToString();
     }
 
