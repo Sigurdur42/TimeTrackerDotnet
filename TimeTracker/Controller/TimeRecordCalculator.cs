@@ -28,6 +28,14 @@ public class TimeRecordCalculator
         _dailyTargetMinutes = (decimal)dailyTargetHours * 60;
     }
 
+    /// <summary>
+    ///     Target working minutes of a weekday: eight hours before <see cref="RulesOf2026Start" />, the configured ones since
+    /// </summary>
+    public decimal GetDailyTargetMinutes(DateOnly date)
+    {
+        return date < RulesOf2026Start ? EightHours : _dailyTargetMinutes;
+    }
+
     public TimeRecordCategorized[] CalculateCategorySummary(TimeRecord[] timeRecords)
     {
         var result = new List<TimeRecordCategorized>();

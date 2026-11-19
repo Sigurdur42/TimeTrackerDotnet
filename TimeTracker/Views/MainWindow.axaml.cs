@@ -34,16 +34,8 @@ public partial class MainWindow : Window
         var result = await storageProvider.OpenFilePickerAsync(options);
         if (result.Count == 0) return;
 
-        var selectedFile = result[0];
-        try
-        {
-            ViewModel.LoadDataFile(new FileInfo(selectedFile.Path.LocalPath));
-        }
-        catch (Exception exception)
-        {
-            // TODO: Better error handling
-            Console.WriteLine(exception);
-        }
+        // Errors are shown by the view model
+        ViewModel.LoadDataFile(new FileInfo(result[0].Path.LocalPath));
     }
 
     private async void OnEditRecord(object? sender, RoutedEventArgs e)
@@ -71,7 +63,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            var dialog = new Flextime();
+            var dialog = new Flextime(ViewModel.GetDefaultFlextimeHours);
             await dialog.ShowDialog(this);
             if (!dialog.IsOk) return;
 
@@ -120,7 +112,8 @@ public partial class MainWindow : Window
             await Task.Delay(10);
 
             dialog.Data.CopyTo(record);
-            if (!editMode) ViewModel.RawData.Insert(0, record);
+            if (editMode) ViewModel.UpdateRecordPosition(record);
+            else ViewModel.AddRecord(record);
 
             ViewModel.RecalculateAndSaveData();
         }

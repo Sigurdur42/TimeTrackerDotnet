@@ -16,10 +16,18 @@ public class MainWindowViewModel : ViewModelBase
     private readonly TimeRecordCalculator _calculator;
     private readonly TimeRecordSerializer _serializer = new();
     private readonly ILocalSettings _settings;
+    private FileInfo? _dataFile;
+    private string? _errorMessage;
     private TimeRecord? _selectedDaiy;
     private TimeSpan _totalOvertime;
 
-    public MainWindowViewModel()
+    public MainWindowViewModel() : this(DefaultAppDirectory, null)
+    {
+    }
+
+    /// <param name="appDirectory">Directory of the settings and the default data file</param>
+    /// <param name="settings">The settings to use, null to read them from the app directory</param>
+    public MainWindowViewModel(string appDirectory, ILocalSettings? settings)
     {
         var version = GetType().Assembly.GetName().Version?.ToString() ?? "";
         var informational = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? version;
@@ -27,20 +35,40 @@ public class MainWindowViewModel : ViewModelBase
 
         ApplicationTitle = $"TimeTracker - V{informational}";
 
-        var special = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var appDirectory = Path.Combine(special, "TimeTracker");
-        _settings = new ConfigurationBuilder<ILocalSettings>().UseJsonFile(Path.Combine(appDirectory, "TimeTrackerSettings.json")).Build();
+        _settings = settings ?? new ConfigurationBuilder<ILocalSettings>().UseJsonFile(Path.Combine(appDirectory, "TimeTrackerSettings.json")).Build();
         _calculator = CreateCalculator(_settings.DailyTargetHours);
 
+        FileInfo file;
         try
         {
-            LoadDataFile(GetOrCreateDataFile(_settings.LastDataFile, appDirectory));
+            file = GetOrCreateDataFile(_settings.LastDataFile, appDirectory);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            // TODO: Better error handling
-            Console.WriteLine(exception);
+            ErrorMessage = $"Could not open the data file: {exception.Message}";
+            return;
         }
+
+        LoadDataFile(file);
+    }
+
+    private static string DefaultAppDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TimeTracker");
+
+    /// <summary>
+    ///     Error of loading or saving the data file, null if there is none
+    /// </summary>
+    public string? ErrorMessage
+    {
+        get => _errorMessage;
+        private set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
+    }
+
+    /// <summary>
+    ///     Default hours of a flextime record on the given day, the daily target hours of that day
+    /// </summary>
+    public decimal GetDefaultFlextimeHours(DateOnly date)
+    {
+        return _calculator.GetDailyTargetMinutes(date) / 60;
     }
 
     private static TimeRecordCalculator CreateCalculator(double dailyTargetHours)
@@ -94,21 +122,42 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedDaiy, value);
     }
 
-    public string? FileName => _settings.LastDataFile;
+    public string? FileName => _dataFile?.FullName ?? _settings.LastDataFile;
 
     public string ApplicationTitle { get; }
 
-    public void LoadDataFile(FileInfo fileInfo)
+    /// <summary>
+    ///     Loads the data file. If it cannot be read, the current data is kept and <see cref="ErrorMessage" /> is set.
+    /// </summary>
+    /// <returns>True if the file was loaded</returns>
+    public bool LoadDataFile(FileInfo fileInfo)
     {
-        if (!fileInfo.Exists) return;
+        if (!fileInfo.Exists)
+        {
+            ErrorMessage = $"The data file {fileInfo.FullName} does not exist";
+            return false;
+        }
 
-        var data = _serializer.Deserialize(fileInfo).OrderByDescending(_ => _.Date).ThenByDescending(_ => _.Start).ToArray();
+        TimeRecord[] data;
+        try
+        {
+            data = _serializer.Deserialize(fileInfo).OrderByDescending(_ => _.Date).ThenByDescending(_ => _.Start).ToArray();
+        }
+        catch (Exception exception)
+        {
+            // Any error of a single line must not prevent the application from starting
+            ErrorMessage = $"Could not load {fileInfo.FullName}: {exception.Message}";
+            return false;
+        }
 
+        _dataFile = fileInfo;
         _settings.LastDataFile = fileInfo.FullName;
+        ErrorMessage = null;
         this.RaisePropertyChanged(nameof(FileName));
 
         RawData.Reset(data);
         Recalculate(data, false);
+        return true;
     }
 
     /// <summary>
@@ -123,26 +172,80 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     /// <summary>
+    ///     Moves the record to its position after its date or start was changed. The selection is kept.
+    /// </summary>
+    public void UpdateRecordPosition(TimeRecord record)
+    {
+        var index = IndexOf(record);
+        if (index < 0) return;
+
+        var isBeforeNext = index + 1 >= RawData.Count || Compare(record, RawData[index + 1]) <= 0;
+        var isAfterPrevious = index == 0 || Compare(RawData[index - 1], record) <= 0;
+        if (isBeforeNext && isAfterPrevious) return;
+
+        var wasSelected = ReferenceEquals(SelectedDaiy, record);
+        RawData.RemoveAt(index);
+        AddRecord(record);
+        if (wasSelected) SelectedDaiy = record;
+
+        return;
+
+        // Order of RawData: descending by date and start
+        static int Compare(TimeRecord a, TimeRecord b)
+        {
+            var result = b.Date.CompareTo(a.Date);
+            return result != 0 ? result : b.Start.CompareTo(a.Start);
+        }
+    }
+
+    private int IndexOf(TimeRecord record)
+    {
+        for (var index = 0; index < RawData.Count; index++)
+            if (ReferenceEquals(RawData[index], record))
+                return index;
+
+        return -1;
+    }
+
+    /// <summary>
     ///     Removes exactly the given record instance; records with equal values are kept.
     /// </summary>
     public void DeleteRecord(TimeRecord record)
     {
-        for (var index = 0; index < RawData.Count; index++)
-        {
-            if (!ReferenceEquals(RawData[index], record)) continue;
+        var index = IndexOf(record);
+        if (index < 0) return;
 
-            if (ReferenceEquals(SelectedDaiy, record)) SelectedDaiy = null;
-            RawData.RemoveAt(index);
-            return;
-        }
+        if (ReferenceEquals(SelectedDaiy, record)) SelectedDaiy = null;
+        RawData.RemoveAt(index);
     }
 
-    public void RecalculateAndSaveData()
+    /// <summary>
+    ///     Recalculates and saves the data. Without a successfully loaded data file nothing is saved, as this would
+    ///     overwrite the file that could not be read.
+    /// </summary>
+    /// <returns>True if the data was saved</returns>
+    public bool RecalculateAndSaveData()
     {
         var raw = RawData.ToArray();
         Recalculate(raw, true);
 
-        _serializer.Serialize(new FileInfo(FileName!), raw);
+        if (_dataFile is null)
+        {
+            ErrorMessage = "Changes are not saved, as no data file is loaded. Fix the file and load it again.";
+            return false;
+        }
+
+        try
+        {
+            _serializer.Serialize(_dataFile, raw);
+            ErrorMessage = null;
+            return true;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            ErrorMessage = $"Could not save {_dataFile.FullName}: {exception.Message}";
+            return false;
+        }
     }
 
     // Display order of the derived collections; dates are unique per day/month

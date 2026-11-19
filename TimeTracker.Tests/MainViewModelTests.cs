@@ -1,4 +1,6 @@
+using System.Globalization;
 using TimeTracker.Controller;
+using TimeTracker.Models;
 using TimeTracker.ViewModels;
 
 namespace TimeTracker.Tests;
@@ -75,6 +77,164 @@ public class MainViewModelTests
         {
             Assert.That(result.FullName, Is.EqualTo(lastDataFile));
             Assert.That(result.Exists, Is.True);
+        });
+    }
+
+    private sealed class TestSettings : ILocalSettings
+    {
+        public string? LastDataFile { get; set; }
+        public double DailyTargetHours { get; set; } = 8;
+    }
+
+    private static TimeRecord Record(string date, string start, string end)
+    {
+        return new TimeRecord
+        {
+            Date = DateOnly.ParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture),
+            Start = TimeOnly.ParseExact(start, "HH:mm", CultureInfo.InvariantCulture),
+            End = TimeOnly.ParseExact(end, "HH:mm", CultureInfo.InvariantCulture)
+        };
+    }
+
+    private MainWindowViewModel CreateViewModel(string fileContent, double dailyTargetHours = 8)
+    {
+        var dataFile = Path.Combine(_tempDirectory, "data.csv");
+        File.WriteAllText(dataFile, fileContent);
+        return new MainWindowViewModel(Path.Combine(_tempDirectory, "app"), new TestSettings { LastDataFile = dataFile, DailyTargetHours = dailyTargetHours });
+    }
+
+    [Test]
+    public void InvalidLineDoesNotPreventStartAndIsShown()
+    {
+        var target = CreateViewModel("05.02.2024;;10:00;;a;\n");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.RawData, Is.Empty);
+            Assert.That(target.ErrorMessage, Does.Contain("data.csv").And.Contain("record 1"));
+        });
+    }
+
+    [Test]
+    public void FileThatCouldNotBeLoadedIsNotOverwritten()
+    {
+        const string content = "05.02.2024;;10:00;;a;\n06.02.2024;08:00;10:00;;b;\n";
+        var target = CreateViewModel(content);
+
+        target.AddRecord(Record("2024-02-07", "08:00", "09:00"));
+        var saved = target.RecalculateAndSaveData();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(saved, Is.False);
+            Assert.That(File.ReadAllText(Path.Combine(_tempDirectory, "data.csv")), Is.EqualTo(content));
+            Assert.That(target.ErrorMessage, Does.Contain("not saved"));
+        });
+    }
+
+    [Test]
+    public void LoadingAnInvalidFileKeepsTheCurrentData()
+    {
+        var target = CreateViewModel("05.02.2024;08:00;10:00;;a;\n");
+        var invalidFile = Path.Combine(_tempDirectory, "invalid.csv");
+        File.WriteAllText(invalidFile, "05.02.2024;08:00;;;a;\n");
+
+        var loaded = target.LoadDataFile(new FileInfo(invalidFile));
+        target.AddRecord(Record("2024-02-06", "08:00", "09:00"));
+        var saved = target.RecalculateAndSaveData();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded, Is.False);
+            Assert.That(target.FileName, Does.EndWith("data.csv"));
+            Assert.That(saved, Is.True, "Saved into the file loaded before");
+            Assert.That(File.ReadAllText(Path.Combine(_tempDirectory, "data.csv")), Does.Contain("06.02.2024"));
+            Assert.That(File.ReadAllText(invalidFile), Is.EqualTo("05.02.2024;08:00;;;a;\n"));
+            Assert.That(target.ErrorMessage, Is.Null, "Cleared by the successful save");
+        });
+    }
+
+    [Test]
+    public void ValidFileHasNoError()
+    {
+        var target = CreateViewModel("05.02.2024;08:00;10:00;;a;\n");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.RawData, Has.Count.EqualTo(1));
+            Assert.That(target.ErrorMessage, Is.Null);
+        });
+    }
+
+    [Test]
+    public void NewRecordIsInsertedByDateAndStart()
+    {
+        var target = CreateViewModel("06.02.2024;08:00;10:00;;a;\n05.02.2024;08:00;10:00;;b;\n05.02.2024;14:00;15:00;;c;\n");
+
+        target.AddRecord(Record("2024-02-05", "11:00", "12:00"));
+
+        Assert.That(target.RawData.Select(_ => $"{_.Date:dd.MM} {_.Start:HH:mm}"),
+            Is.EqualTo(new[] { "06.02 08:00", "05.02 14:00", "05.02 11:00", "05.02 08:00" }));
+    }
+
+    [Test]
+    public void EditedRecordIsMovedToItsPositionAndStaysSelected()
+    {
+        var target = CreateViewModel("07.02.2024;08:00;10:00;;a;\n06.02.2024;08:00;10:00;;b;\n05.02.2024;08:00;10:00;;c;\n");
+        var record = target.RawData[0];
+        target.SelectedDaiy = record;
+
+        record.Date = new DateOnly(2024, 2, 5);
+        record.Start = new TimeOnly(9, 0);
+        target.UpdateRecordPosition(record);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.RawData.Select(_ => _.Comment), Is.EqualTo(new[] { "b", "a", "c" }));
+            Assert.That(target.SelectedDaiy, Is.SameAs(record));
+        });
+    }
+
+    [Test]
+    public void EditedRecordAtItsPositionIsNotMoved()
+    {
+        var target = CreateViewModel("07.02.2024;08:00;10:00;;a;\n06.02.2024;08:00;10:00;;b;\n");
+        var record = target.RawData[1];
+        var changes = 0;
+        target.RawData.CollectionChanged += (_, _) => changes++;
+
+        record.Start = new TimeOnly(9, 0);
+        target.UpdateRecordPosition(record);
+
+        Assert.That(changes, Is.Zero);
+    }
+
+    [TestCase("2026-11-30", 8, Description = "Old rules always use 8 hours")]
+    [TestCase("2026-12-01", 7.5, Description = "New rules use the configured hours")]
+    public void FlextimeDefaultsToTargetHoursOfTheDay(string date, double expectedHours)
+    {
+        var target = CreateViewModel("", 7.5);
+
+        var result = target.GetDefaultFlextimeHours(DateOnly.ParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture));
+
+        Assert.That(result, Is.EqualTo((decimal)expectedHours));
+    }
+
+    [Test]
+    public void FlextimeHoursFollowTheDateUntilChanged()
+    {
+        var target = new FlextimeViewModel(date => date < new DateOnly(2026, 12, 1) ? 8 : 7);
+
+        target.Date = new DateOnly(2026, 12, 7);
+        var followed = target.Hours;
+
+        target.Hours = 4;
+        target.Date = new DateOnly(2026, 11, 30);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(followed, Is.EqualTo(7));
+            Assert.That(target.Hours, Is.EqualTo(4), "Hours changed by the user are kept");
         });
     }
 

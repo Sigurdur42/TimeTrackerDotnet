@@ -89,13 +89,20 @@
                 </Button>
             </Grid>
         </Grid>
-        <!-- Row with overview -->
+        <!-- Row with overview and errors of loading or saving the data file -->
         <StackPanel Grid.Row="2"
                     Spacing="0,0,0,5"
-                    Orientation="Horizontal">
-            <Label>Total Overtime:</Label>
-            <TextBlock Text="{Binding TotalOvertime, Converter={StaticResource OvertimeDisplayConverter}}"
-                       Foreground="{Binding TotalOvertime, Converter={StaticResource TimeSpanToBrushConverter}}" />
+                    Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
+                <Label>Total Overtime:</Label>
+                <TextBlock Text="{Binding TotalOvertime, Converter={StaticResource OvertimeDisplayConverter}}"
+                           Foreground="{Binding TotalOvertime, Converter={StaticResource TimeSpanToBrushConverter}}" />
+            </StackPanel>
+            <SelectableTextBlock Margin="5,3,5,0"
+                                 Foreground="OrangeRed"
+                                 TextWrapping="Wrap"
+                                 Text="{Binding ErrorMessage}"
+                                 IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
         </StackPanel>
         <!-- Second row with data details -->
         <TabControl Grid.Row="4"

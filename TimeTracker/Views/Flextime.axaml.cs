@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using TimeTracker.Models;
@@ -7,11 +8,17 @@ namespace TimeTracker.Views;
 
 public partial class Flextime : Window
 {
-    private readonly FlextimeViewModel _viewModel = new();
+    private readonly FlextimeViewModel _viewModel;
 
-    public Flextime()
+    public Flextime() : this(_ => FlextimeViewModel.DefaultHours)
+    {
+    }
+
+    /// <param name="defaultHours">The hours proposed for a day, usually the daily target hours of that day</param>
+    public Flextime(Func<DateOnly, decimal> defaultHours)
     {
         InitializeComponent();
+        _viewModel = new FlextimeViewModel(defaultHours);
         DataContext = _viewModel;
     }
 
