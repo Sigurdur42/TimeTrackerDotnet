@@ -266,6 +266,155 @@ public class MainViewModelTests
     }
 
     [Test]
+    public void DeleteRemovesExactlyTheInstanceAndClearsSelection()
+    {
+        var target = CreateViewModel("05.02.2024;08:00;10:00;;a;\n05.02.2024;08:00;10:00;;a;\n");
+        var deleted = target.RawData[1];
+        var kept = target.RawData[0];
+        target.SelectedRecord = deleted;
+
+        target.DeleteRecord(deleted);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.RawData, Has.Count.EqualTo(1));
+            Assert.That(target.RawData[0], Is.SameAs(kept));
+            Assert.That(target.SelectedRecord, Is.Null);
+        });
+    }
+
+    [Test]
+    public void DeleteKeepsSelectionOfOtherRecord()
+    {
+        var target = CreateViewModel("06.02.2024;08:00;10:00;;a;\n05.02.2024;08:00;10:00;;b;\n");
+        var selected = target.RawData[0];
+        target.SelectedRecord = selected;
+
+        target.DeleteRecord(target.RawData[1]);
+
+        Assert.That(target.SelectedRecord, Is.SameAs(selected));
+    }
+
+    [Test]
+    public void DeletingAnUnknownRecordChangesNothing()
+    {
+        var target = CreateViewModel("05.02.2024;08:00;10:00;;a;\n");
+        var equalButOther = new TimeRecord();
+        target.RawData[0].CopyTo(equalButOther);
+
+        target.DeleteRecord(equalButOther);
+
+        Assert.That(target.RawData, Has.Count.EqualTo(1));
+    }
+
+    [Test]
+    public void DeletedRecordIsRemovedFromTheFile()
+    {
+        var target = CreateViewModel("06.02.2024;08:00;10:00;;a;\n05.02.2024;08:00;10:00;;b;\n");
+
+        target.DeleteRecord(target.RawData[0]);
+        target.RecalculateAndSaveData();
+
+        Assert.That(new TimeRecordSerializer().Deserialize(new FileInfo(Path.Combine(_tempDirectory, "data.csv"))).Select(_ => _.Comment),
+            Is.EqualTo(new[] { "b" }));
+    }
+
+    [Test]
+    public void LoadingAMissingFileKeepsTheCurrentData()
+    {
+        var target = CreateViewModel("05.02.2024;08:00;10:00;;a;\n");
+
+        var loaded = target.LoadDataFile(new FileInfo(Path.Combine(_tempDirectory, "missing.csv")));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded, Is.False);
+            Assert.That(target.RawData, Has.Count.EqualTo(1));
+            Assert.That(target.FileName, Does.EndWith("data.csv"));
+            Assert.That(target.ErrorMessage, Does.Contain("missing.csv").And.Contain("does not exist"));
+        });
+    }
+
+    [Test]
+    public void LoadingAnotherFileReplacesTheData()
+    {
+        var target = CreateViewModel("05.02.2024;08:00;10:00;;a;\n");
+        var otherFile = Path.Combine(_tempDirectory, "other.csv");
+        File.WriteAllText(otherFile, "06.02.2024;08:00;09:00;;x;\n07.02.2024;08:00;09:00;;y;\n");
+
+        var loaded = target.LoadDataFile(new FileInfo(otherFile));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(loaded, Is.True);
+            Assert.That(target.FileName, Is.EqualTo(otherFile));
+            Assert.That(target.RawData.Select(_ => _.Comment), Is.EqualTo(new[] { "y", "x" }), "Newest first");
+            Assert.That(target.ErrorMessage, Is.Null);
+        });
+    }
+
+    [Test]
+    public void LockedFileIsNotSavedAndShown()
+    {
+        var target = CreateViewModel("05.02.2024;08:00;10:00;;a;\n");
+        bool saved;
+
+        using (File.Open(Path.Combine(_tempDirectory, "data.csv"), FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        {
+            saved = target.RecalculateAndSaveData();
+        }
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(saved, Is.False);
+            Assert.That(target.ErrorMessage, Does.StartWith("Could not save").And.Contain("data.csv"));
+        });
+    }
+
+    [Test]
+    public void DataFileThatCannotBeCreatedIsShown()
+    {
+        // A file where the app directory should be prevents creating the default data file
+        var appDirectory = Path.Combine(_tempDirectory, "app");
+        File.WriteAllText(appDirectory, "");
+
+        var target = new MainWindowViewModel(appDirectory, new TestSettings());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.RawData, Is.Empty);
+            Assert.That(target.ErrorMessage, Does.StartWith("Could not open the data file"));
+            Assert.That(target.RecalculateAndSaveData(), Is.False, "Nothing to save into");
+        });
+    }
+
+    [Test]
+    public void TotalOvertimeIsCalculatedOnLoadAndSave()
+    {
+        // Monday, 10 hours => 2 hours overtime
+        var target = CreateViewModel("05.02.2024;08:00;18:00;;a;\n");
+        var afterLoad = target.TotalOvertime;
+
+        target.AddRecord(Record("2024-02-06", "08:00", "17:00"));
+        target.RecalculateAndSaveData();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(afterLoad, Is.EqualTo(TimeSpan.FromHours(2)));
+            Assert.That(target.TotalOvertime, Is.EqualTo(TimeSpan.FromHours(3)));
+            Assert.That(target.ByDayData, Has.Count.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public void TitleContainsTheVersion()
+    {
+        var target = CreateViewModel("");
+
+        Assert.That(target.ApplicationTitle, Does.StartWith("TimeTracker - V"));
+    }
+
+    [Test]
     public void FallsBackToDefaultFileIfLastDirectoryIsMissing()
     {
         var lastDataFile = Path.Combine(_tempDirectory, "unmounted", "data.csv");
