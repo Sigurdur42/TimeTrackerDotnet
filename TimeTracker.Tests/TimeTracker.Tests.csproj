@@ -10,31 +10,31 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
         <PackageReference Include="NUnit" Version="5.0.0" />
         <PackageReference Include="NUnit3TestAdapter" Version="6.3.1" />
         <PackageReference Include="NUnit.Analyzers" Version="4.15.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="coverlet.collector" Version="10.1.0">
+        <PackageReference Include="coverlet.collector" Version="10.1.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="ResourceLoader" Version="3.3.1"/>
+        <PackageReference Include="ResourceLoader" Version="3.3.1" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="TestData\"/>
+        <Folder Include="TestData\" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="TestData\DataFile.csv"/>
-        <EmbeddedResource Include="TestData\DataFile.csv"/>
+        <None Remove="TestData\DataFile.csv" />
+        <EmbeddedResource Include="TestData\DataFile.csv" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\TimeTracker\TimeTracker.csproj"/>
+        <ProjectReference Include="..\TimeTracker\TimeTracker.csproj" />
     </ItemGroup>
 
 </Project>

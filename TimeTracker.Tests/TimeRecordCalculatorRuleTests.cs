@@ -22,14 +22,15 @@ public class TimeRecordCalculatorRuleTests
         return TimeOnly.ParseExact(time, "HH:mm", CultureInfo.InvariantCulture);
     }
 
-    private static TimeRecord Record(string date, string start, string end, bool travel = false, bool allOvertime = false, string? comment = null)
+    private static TimeRecord Record(string date, string start, string end, bool travel = false, bool allOvertime = false, string? comment = null, bool passive = false)
     {
         return new TimeRecord
         {
             Date = Date(date),
             Start = Time(start),
             End = Time(end),
-            Travel = travel,
+            TravelActive = travel,
+            TravelPassive = passive,
             AllOvertime = allOvertime,
             Comment = comment
         };
@@ -111,7 +112,7 @@ public class TimeRecordCalculatorRuleTests
         {
             Assert.That(day.OvertimeMinutes, Is.EqualTo(120));
             Assert.That(day.WorkMinutes, Is.EqualTo(480));
-            Assert.That(day.TravelMinutes, Is.EqualTo(120));
+            Assert.That(day.TravelActiveMinutes, Is.EqualTo(120));
         });
     }
 
@@ -124,7 +125,77 @@ public class TimeRecordCalculatorRuleTests
         {
             Assert.That(day.OvertimeMinutes, Is.EqualTo(120));
             Assert.That(day.WorkMinutes, Is.Zero);
-            Assert.That(day.TravelMinutes, Is.EqualTo(600));
+            Assert.That(day.TravelActiveMinutes, Is.EqualTo(600));
+        });
+    }
+
+    [Test]
+    public void PassiveTravelCountsAsWorkingTime()
+    {
+        var day = SingleDay(Record("2024-02-05", "07:00", "17:00", passive: true));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(120));
+            Assert.That(day.WorkMinutes, Is.Zero);
+            Assert.That(day.TravelActiveMinutes, Is.Zero);
+            Assert.That(day.TravelPassiveMinutes, Is.EqualTo(600));
+        });
+    }
+
+    [Test]
+    public void WorkAndPassiveTravelResultInTotalWorkingTime()
+    {
+        // Monday: 7:15 h work and 6 h passive travel
+        var records = new[]
+        {
+            Record("2026-11-16", "08:00", "15:15"),
+            Record("2026-11-16", "15:15", "21:15", passive: true)
+        };
+
+        var day = SingleDay(records);
+        var category = _target.CalculateCategorySummary(records);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.WorkMinutes, Is.EqualTo(7 * 60 + 15));
+            Assert.That(day.TravelPassiveMinutes, Is.EqualTo(6 * 60));
+            Assert.That(day.WorkMinutes + day.TravelActiveMinutes + day.TravelPassiveMinutes, Is.EqualTo(13 * 60 + 15), "Total time");
+            Assert.That(category.Single().Duration, Is.EqualTo(new TimeSpan(13, 15, 0)), "Total time of the category");
+            Assert.That(day.Overtime, Is.EqualTo(new TimeSpan(5, 15, 0)), "Overtime beyond eight hours");
+        });
+    }
+
+    [Test]
+    public void ActiveAndPassiveTravelAreSummedSeparately()
+    {
+        var day = SingleDay(
+            Record("2024-02-05", "06:00", "07:00", travel: true),
+            Record("2024-02-05", "07:00", "08:00", passive: true),
+            Record("2024-02-05", "08:00", "15:00"),
+            Record("2024-02-05", "15:00", "17:30", passive: true));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.WorkMinutes, Is.EqualTo(420));
+            Assert.That(day.TravelActiveMinutes, Is.EqualTo(60));
+            Assert.That(day.TravelPassiveMinutes, Is.EqualTo(60 + 150));
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(420 + 60 + 210 - 480));
+            Assert.That(day.Start, Is.EqualTo(Time("08:00")), "Start is the first work start");
+        });
+    }
+
+    [Test]
+    public void PassiveTravelWithAllOvertimeIsCountedOnce()
+    {
+        var day = SingleDay(
+            Record("2024-02-05", "08:00", "16:00"),
+            Record("2024-02-05", "16:00", "18:00", allOvertime: true, passive: true));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(120));
+            Assert.That(day.TravelPassiveMinutes, Is.EqualTo(120));
         });
     }
 
@@ -151,7 +222,7 @@ public class TimeRecordCalculatorRuleTests
         Assert.Multiple(() =>
         {
             Assert.That(day.WorkMinutes, Is.EqualTo(4 * 60 + 3 * 60 + 45));
-            Assert.That(day.TravelMinutes, Is.EqualTo(90 + 60));
+            Assert.That(day.TravelActiveMinutes, Is.EqualTo(90 + 60));
         });
     }
 
@@ -201,7 +272,7 @@ public class TimeRecordCalculatorRuleTests
             Assert.That(day.OvertimeMinutes, Is.EqualTo(expected));
             Assert.That(day.FlextimeMinutes, Is.EqualTo(hours * 60));
             Assert.That(day.WorkMinutes, Is.Zero);
-            Assert.That(day.TravelMinutes, Is.Zero);
+            Assert.That(day.TravelActiveMinutes, Is.Zero);
         });
     }
 
@@ -276,7 +347,7 @@ public class TimeRecordCalculatorRuleTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(csv, Is.EqualTo("05.02.2024;00:00;08:00;;Gleitzeit;\n"));
+            Assert.That(csv, Is.EqualTo("05.02.2024;00:00;08:00;;Gleitzeit;;\n"));
             Assert.That(result.Single().IsFlextime, Is.True);
             Assert.That(result.Single().Duration, Is.EqualTo(TimeSpan.FromHours(8)));
         });
@@ -314,8 +385,27 @@ public class TimeRecordCalculatorRuleTests
         Assert.Multiple(() =>
         {
             Assert.That(result[0].WorkMinutes, Is.EqualTo(120));
-            Assert.That(result[0].TravelMinutes, Is.EqualTo(60));
+            Assert.That(result[0].TravelActiveMinutes, Is.EqualTo(60));
             Assert.That(result[0].Duration, Is.EqualTo(TimeSpan.FromHours(3)));
+        });
+    }
+
+    [Test]
+    public void CategoryTimeIsSplitIntoWorkActiveAndPassiveTravel()
+    {
+        var result = _target.CalculateCategorySummary([
+            Record("2024-02-05", "08:00", "10:00", comment: "DUNA"),
+            Record("2024-02-05", "06:00", "07:00", travel: true, comment: "DUNA: Travel"),
+            Record("2024-02-05", "10:00", "10:30", comment: "DUNA: Train", passive: true)
+        ]);
+
+        Assert.That(result, Has.Length.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[0].WorkMinutes, Is.EqualTo(120));
+            Assert.That(result[0].TravelActiveMinutes, Is.EqualTo(60));
+            Assert.That(result[0].TravelPassiveMinutes, Is.EqualTo(30));
+            Assert.That(result[0].Duration, Is.EqualTo(TimeSpan.FromHours(3.5)));
         });
     }
 
@@ -476,16 +566,266 @@ public class TimeRecordCalculatorRuleTests
 
     #endregion
 
+    #region Rules since 01.12.2026
+
+    // 2026-12-07 is a Monday, 2026-12-05 a Saturday, 2026-12-06 a Sunday
+
+    [Test]
+    public void Rules2026WorkAndPassiveTravelUpToSixHoursCountFully()
+    {
+        // Same scenario as WorkAndPassiveTravelResultInTotalWorkingTime, but with the new rules
+        var day = SingleDay(
+            Record("2026-12-07", "08:00", "15:15"),
+            Record("2026-12-07", "15:15", "21:15", passive: true));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.Overtime, Is.EqualTo(new TimeSpan(5, 15, 0)), "13:15 h total minus 8 h target");
+            Assert.That(day.HasLoss, Is.False);
+            Assert.That(day.Loss, Is.EqualTo(TimeSpan.Zero));
+        });
+    }
+
+    [Test]
+    public void Rules2026PassiveTravelBeyondSixHoursCountsHalfOnDaysWithWork()
+    {
+        var day = SingleDay(
+            Record("2026-12-07", "08:00", "15:15"),
+            Record("2026-12-07", "15:15", "23:15", passive: true));
+
+        Assert.Multiple(() =>
+        {
+            // 7:15 h work + 6 h passive travel + 2 h * 0.5 = 14:15 h
+            Assert.That(day.Overtime, Is.EqualTo(new TimeSpan(6, 15, 0)));
+            Assert.That(day.PassiveTravelLossMinutes, Is.EqualTo(60));
+            Assert.That(day.WorkCapLossMinutes, Is.Zero);
+            Assert.That(day.Loss, Is.EqualTo(TimeSpan.FromHours(1)));
+            Assert.That(day.LossDescription, Does.Contain("Travel (passive)"));
+        });
+    }
+
+    [Test]
+    public void Rules2026PassiveTravelOnlyIsLimitedToTargetHours()
+    {
+        var day = SingleDay(Record("2026-12-07", "06:00", "16:00", passive: true));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.OvertimeMinutes, Is.Zero);
+            Assert.That(day.PassiveTravelLossMinutes, Is.EqualTo(120));
+            Assert.That(day.IsOverMaxWorkTime, Is.False);
+        });
+    }
+
+    [Test]
+    public void Rules2026PassiveTravelOnlyBelowTargetHasNoLoss()
+    {
+        var day = SingleDay(Record("2026-12-07", "06:00", "12:00", passive: true));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(-120));
+            Assert.That(day.HasLoss, Is.False);
+        });
+    }
+
+    [Test]
+    public void Rules2026PassiveTravelLimitUsesConfiguredTargetHours()
+    {
+        var target = new TimeRecordCalculator(7);
+
+        var passiveOnly = target.CalculateByDay([Record("2026-12-07", "06:00", "16:00", passive: true)]).Single();
+        var workOnly = target.CalculateByDay([Record("2026-12-08", "08:00", "16:00")]).Single();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(passiveOnly.OvertimeMinutes, Is.Zero);
+            Assert.That(passiveOnly.PassiveTravelLossMinutes, Is.EqualTo(180));
+            Assert.That(workOnly.OvertimeMinutes, Is.EqualTo(60));
+        });
+    }
+
+    [Test]
+    public void Rules2026WorkIsLimitedToTenHours()
+    {
+        var day = SingleDay(Record("2026-12-07", "07:00", "18:00"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(120));
+            Assert.That(day.WorkCapLossMinutes, Is.EqualTo(60));
+            Assert.That(day.IsOverMaxWorkTime, Is.True);
+            Assert.That(day.LossDescription, Does.Contain("over 10:00 h"));
+        });
+    }
+
+    [Test]
+    public void Rules2026ActiveTravelIsPartOfTheTenHours()
+    {
+        var day = SingleDay(
+            Record("2026-12-07", "05:00", "08:00", travel: true),
+            Record("2026-12-07", "08:00", "16:00"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(120));
+            Assert.That(day.WorkCapLossMinutes, Is.EqualTo(60));
+        });
+    }
+
+    [Test]
+    public void Rules2026PassiveTravelIsNotPartOfTheTenHours()
+    {
+        var day = SingleDay(
+            Record("2026-12-07", "08:00", "18:00"),
+            Record("2026-12-07", "18:00", "20:00", passive: true));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(240));
+            Assert.That(day.HasLoss, Is.False);
+        });
+    }
+
+    [TestCase("2026-12-05", "08:00", "12:00", 300, Description = "Saturday +25%")]
+    [TestCase("2026-12-06", "08:00", "12:00", 480, Description = "Sunday +100%")]
+    [TestCase("2026-12-05", "07:00", "18:00", 750, Description = "Saturday, limited to 10 h before the surcharge")]
+    public void Rules2026WeekendWorkGetsSurcharge(string date, string start, string end, decimal expectedOvertime)
+    {
+        var day = SingleDay(Record(date, start, end));
+
+        Assert.That(day.OvertimeMinutes, Is.EqualTo(expectedOvertime));
+    }
+
+    [Test]
+    public void Rules2026WeekendSurchargeAppliesToActiveButNotToPassiveTravel()
+    {
+        var day = SingleDay(
+            Record("2026-12-06", "08:00", "10:00", travel: true),
+            Record("2026-12-06", "10:00", "12:00"),
+            Record("2026-12-06", "12:00", "14:00", passive: true));
+
+        Assert.Multiple(() =>
+        {
+            // (2 h + 2 h) * 2 + 2 h
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(600));
+            Assert.That(day.SurchargeMinutes, Is.EqualTo(240));
+        });
+    }
+
+    [Test]
+    public void Rules2026AllOvertimeIsNotComparedToTarget()
+    {
+        var day = SingleDay(
+            Record("2026-12-07", "08:00", "16:00"),
+            Record("2026-12-07", "16:00", "19:00", allOvertime: true));
+
+        Assert.Multiple(() =>
+        {
+            // 11 h are limited to 10 h, 3 h of them are all overtime
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(180 + (420 - 480)));
+            Assert.That(day.WorkCapLossMinutes, Is.EqualTo(60));
+        });
+    }
+
+    [Test]
+    public void Rules2026StartOn1stDecember()
+    {
+        var result = _target.CalculateByDay([
+            Record("2026-11-30", "07:00", "18:00"),
+            Record("2026-12-01", "07:00", "18:00")
+        ]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[0].OvertimeMinutes, Is.EqualTo(180), "Old rules without limit");
+            Assert.That(result[0].HasLoss, Is.False);
+            Assert.That(result[1].OvertimeMinutes, Is.EqualTo(120), "New rules with limit to 10 h");
+            Assert.That(result[1].HasLoss, Is.True);
+        });
+    }
+
+    [Test]
+    public void OldRulesIgnoreConfiguredTargetHours()
+    {
+        var day = new TimeRecordCalculator(7).CalculateByDay([Record("2026-11-30", "08:00", "16:00")]).Single();
+
+        Assert.That(day.OvertimeMinutes, Is.Zero);
+    }
+
+    [Test]
+    public void Rules2026FlextimeIsUnchanged()
+    {
+        var day = SingleDay(TimeRecord.CreateFlextime(Date("2026-12-07"), 8));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(-480));
+            Assert.That(day.HasLoss, Is.False);
+        });
+    }
+
+    [TestCase(0)]
+    [TestCase(-1)]
+    [TestCase(25)]
+    public void InvalidTargetHoursAreRejected(double hours)
+    {
+        Assert.That(() => new TimeRecordCalculator(hours), Throws.TypeOf<ArgumentOutOfRangeException>());
+    }
+
+    [Test]
+    public void FurtherRuleSetAppliesFromItsStart()
+    {
+        // A rule change in 2027 only needs a further rule set
+        var rules = WorkingTimeRules.CreateDefault()
+            .Append(new WorkingTimeRules { ValidFrom = new DateOnly(2027, 1, 1), DailyTargetMinutes = 7 * 60, MaxWorkMinutes = 9 * 60 })
+            .ToArray();
+        var target = new TimeRecordCalculator(rules);
+
+        var result = target.CalculateByDay([
+            Record("2026-12-31", "07:00", "18:00"),
+            Record("2027-01-04", "07:00", "18:00")
+        ]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[0].OvertimeMinutes, Is.EqualTo(120), "Rules of 2026: limit 10 h, target 8 h");
+            Assert.That(result[1].OvertimeMinutes, Is.EqualTo(120), "Rules of 2027: limit 9 h, target 7 h");
+            Assert.That(result[1].WorkCapLossMinutes, Is.EqualTo(120));
+            Assert.That(result[1].LossDescription, Does.Contain("over 09:00 h"));
+        });
+    }
+
+    [TestCase("2000-01-01", 0)]
+    [TestCase("2026-11-30", 0)]
+    [TestCase("2026-12-01", 1)]
+    [TestCase("2030-06-01", 1)]
+    public void RuleSetIsSelectedByDate(string date, int expectedIndex)
+    {
+        var rules = WorkingTimeRules.CreateDefault();
+
+        Assert.That(new TimeRecordCalculator(rules).GetRules(Date(date)), Is.SameAs(rules[expectedIndex]));
+    }
+
+    [Test]
+    public void RuleSetsAreRequired()
+    {
+        Assert.That(() => new TimeRecordCalculator(Array.Empty<WorkingTimeRules>()), Throws.ArgumentException);
+    }
+
+    #endregion
+
     #region CalculateExcel
 
-    private TimeRecordExcel SingleExcel(string start, decimal workMinutes, decimal travelMinutes)
+    private TimeRecordExcel SingleExcel(string start, decimal workMinutes, decimal travelMinutes, decimal passiveMinutes = 0)
     {
         var day = new TimeRecordByDay
         {
             Date = Date("2024-02-05"),
             Start = Time(start),
             WorkMinutes = workMinutes,
-            TravelMinutes = travelMinutes
+            TravelActiveMinutes = travelMinutes,
+            TravelPassiveMinutes = passiveMinutes
         };
 
         var result = _target.CalculateExcel([day]);
@@ -502,8 +842,8 @@ public class TimeRecordCalculatorRuleTests
         {
             Assert.That(result.Start, Is.EqualTo(Time("08:00")));
             Assert.That(result.End, Is.EqualTo(Time("16:45")));
-            Assert.That(result.TravelStart, Is.Null);
-            Assert.That(result.TravelEnd, Is.Null);
+            Assert.That(result.TravelActiveStart, Is.Null);
+            Assert.That(result.TravelActiveEnd, Is.Null);
         });
     }
 
@@ -516,8 +856,8 @@ public class TimeRecordCalculatorRuleTests
         {
             Assert.That(result.Start, Is.Null);
             Assert.That(result.End, Is.Null);
-            Assert.That(result.TravelStart, Is.EqualTo(Time("06:00")));
-            Assert.That(result.TravelEnd, Is.EqualTo(Time("08:00")));
+            Assert.That(result.TravelActiveStart, Is.EqualTo(Time("06:00")));
+            Assert.That(result.TravelActiveEnd, Is.EqualTo(Time("08:00")));
         });
     }
 
@@ -530,8 +870,53 @@ public class TimeRecordCalculatorRuleTests
         {
             Assert.That(result.Start, Is.EqualTo(Time("08:00")));
             Assert.That(result.End, Is.EqualTo(Time("16:45")));
-            Assert.That(result.TravelStart, Is.EqualTo(Time("07:00")));
-            Assert.That(result.TravelEnd, Is.EqualTo(Time("17:45")));
+            Assert.That(result.TravelActiveStart, Is.EqualTo(Time("07:00")));
+            Assert.That(result.TravelActiveEnd, Is.EqualTo(Time("17:45")));
+        });
+    }
+
+    [Test]
+    public void ExcelPassiveTravelIsSplitAroundWorkTime()
+    {
+        var result = SingleExcel("08:00", 480, 0, 120);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.TravelActiveStart, Is.Null);
+            Assert.That(result.TravelActiveEnd, Is.Null);
+            Assert.That(result.TravelPassiveStart, Is.EqualTo(Time("07:00")));
+            Assert.That(result.TravelPassiveEnd, Is.EqualTo(Time("17:45")));
+        });
+    }
+
+    [Test]
+    public void ExcelPassiveTravelIsSplitAroundActiveTravel()
+    {
+        var result = SingleExcel("08:00", 480, 120, 60);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Start, Is.EqualTo(Time("08:00")));
+            Assert.That(result.End, Is.EqualTo(Time("16:45")));
+            Assert.That(result.TravelActiveStart, Is.EqualTo(Time("07:00")));
+            Assert.That(result.TravelActiveEnd, Is.EqualTo(Time("17:45")));
+            Assert.That(result.TravelPassiveStart, Is.EqualTo(Time("06:30")));
+            Assert.That(result.TravelPassiveEnd, Is.EqualTo(Time("18:15")));
+        });
+    }
+
+    [Test]
+    public void ExcelPassiveTravelOnlyHasNoWorkTime()
+    {
+        var result = SingleExcel("06:00", 0, 0, 120);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Start, Is.Null);
+            Assert.That(result.End, Is.Null);
+            Assert.That(result.TravelActiveStart, Is.Null);
+            Assert.That(result.TravelPassiveStart, Is.EqualTo(Time("06:00")));
+            Assert.That(result.TravelPassiveEnd, Is.EqualTo(Time("08:00")));
         });
     }
 
@@ -542,8 +927,8 @@ public class TimeRecordCalculatorRuleTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(result.TravelStart, Is.EqualTo(new TimeOnly(7, 37, 30)));
-            Assert.That(result.TravelEnd, Is.EqualTo(new TimeOnly(17, 7, 30)));
+            Assert.That(result.TravelActiveStart, Is.EqualTo(new TimeOnly(7, 37, 30)));
+            Assert.That(result.TravelActiveEnd, Is.EqualTo(new TimeOnly(17, 7, 30)));
         });
     }
 
@@ -557,7 +942,7 @@ public class TimeRecordCalculatorRuleTests
         {
             Assert.That(result.Start, Is.EqualTo(Time("08:00")));
             Assert.That(result.End, Is.EqualTo(Time("08:45")));
-            Assert.That(result.TravelStart, Is.Null);
+            Assert.That(result.TravelActiveStart, Is.Null);
         });
     }
 

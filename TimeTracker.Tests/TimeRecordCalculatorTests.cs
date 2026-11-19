@@ -36,7 +36,7 @@ public class TimeRecordCalculatorTests
         Assert.Multiple(() =>
         {
             Assert.That(found.WorkMinutes, Is.EqualTo(work), "Work");
-            Assert.That(found.TravelMinutes, Is.EqualTo(travel), "Travel");
+            Assert.That(found.TravelActiveMinutes, Is.EqualTo(travel), "Travel");
         });
     }
 

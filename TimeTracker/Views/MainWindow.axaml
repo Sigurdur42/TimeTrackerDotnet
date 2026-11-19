@@ -76,26 +76,33 @@
                         HorizontalAlignment="Stretch"
                         Margin="0,0,5,0"
                         Click="OnFlextime">
-                    Gleitzeit...
+                    Flextime...
                 </Button>
                 <Button Grid.Row="0"
                         Grid.Column="3"
                         Classes="Small"
                         HorizontalAlignment="Stretch"
                         Margin="0,0,5,0"
-                        IsEnabled="{Binding SelectedDaiy, Converter={x:Static ObjectConverters.IsNotNull}}"
+                        IsEnabled="{Binding SelectedRecord, Converter={x:Static ObjectConverters.IsNotNull}}"
                         Click="OnDeleteRecord">
-                    Löschen...
+                    Delete...
                 </Button>
             </Grid>
         </Grid>
-        <!-- Row with overview -->
+        <!-- Row with overview and errors of loading or saving the data file -->
         <StackPanel Grid.Row="2"
                     Spacing="0,0,0,5"
-                    Orientation="Horizontal">
-            <Label>Total Overtime:</Label>
-            <TextBlock Text="{Binding TotalOvertime, Converter={StaticResource OvertimeDisplayConverter}}"
-                       Foreground="{Binding TotalOvertime, Converter={StaticResource TimeSpanToBrushConverter}}" />
+                    Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
+                <Label>Total Overtime:</Label>
+                <TextBlock Text="{Binding TotalOvertime, Converter={StaticResource OvertimeDisplayConverter}}"
+                           Foreground="{Binding TotalOvertime, Converter={StaticResource TimeSpanToBrushConverter}}" />
+            </StackPanel>
+            <SelectableTextBlock Margin="5,3,5,0"
+                                 Foreground="OrangeRed"
+                                 TextWrapping="Wrap"
+                                 Text="{Binding ErrorMessage}"
+                                 IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
         </StackPanel>
         <!-- Second row with data details -->
         <TabControl Grid.Row="4"
@@ -110,7 +117,7 @@
                               GridLinesVisibility="All"
                               SelectionMode="Single"
                               BorderThickness="1"
-                              SelectedItem="{Binding SelectedDaiy}"
+                              SelectedItem="{Binding SelectedRecord}"
                               VerticalScrollBarVisibility="Visible"
                               BorderBrush="Gray">
                         <DataGrid.Columns>
@@ -185,6 +192,25 @@
                                             Text="{Binding OvertimeThisWeek, Converter={StaticResource OvertimeDisplayConverter}, Mode=OneWay}"
                                             HorizontalAlignment="Right"
                                             IsVisible="{Binding IsLastOfWeek}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Loss"
+                                                    Width="Auto">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <!-- Time not counted due to the rules since 01.12.2026 (more than 10 h of work, limited passive travel), the tool tip names the reason -->
+                                        <TextBlock
+                                            Margin="3,0,3,0"
+                                            Foreground="OrangeRed"
+                                            HorizontalAlignment="Right"
+                                            IsVisible="{Binding HasLoss, Mode=OneWay}"
+                                            ToolTip.Tip="{Binding LossDescription, Mode=OneWay}">
+                                            <Run Text="{x:Static timeTracker:FontawesomeSymbols.TriangleWarning}"
+                                                 FontFamily="{StaticResource FaSolid}" />
+                                            <Run Text="  " />
+                                            <Run Text="{Binding Loss, Converter={StaticResource OvertimeDisplayConverter}, Mode=OneWay}" />
+                                        </TextBlock>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -273,10 +299,14 @@
                                             Binding="{Binding Start, StringFormat=HH:mm, Mode=OneWay}" />
                         <DataGridTextColumn Header="End"
                                             Binding="{Binding End, StringFormat=HH:mm, Mode=OneWay}" />
-                        <DataGridTextColumn Header="TravelStart"
-                                            Binding="{Binding TravelStart, StringFormat=HH:mm, Mode=OneWay}" />
-                        <DataGridTextColumn Header="TravelEnd"
-                                            Binding="{Binding TravelEnd, StringFormat=HH:mm, Mode=OneWay}" />
+                        <DataGridTextColumn Header="Travel (active) Start"
+                                            Binding="{Binding TravelActiveStart, StringFormat=HH:mm, Mode=OneWay}" />
+                        <DataGridTextColumn Header="Travel (active) End"
+                                            Binding="{Binding TravelActiveEnd, StringFormat=HH:mm, Mode=OneWay}" />
+                        <DataGridTextColumn Header="Travel (passive) Start"
+                                            Binding="{Binding TravelPassiveStart, StringFormat=HH:mm, Mode=OneWay}" />
+                        <DataGridTextColumn Header="Travel (passive) End"
+                                            Binding="{Binding TravelPassiveEnd, StringFormat=HH:mm, Mode=OneWay}" />
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>

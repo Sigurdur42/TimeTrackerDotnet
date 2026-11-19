@@ -7,7 +7,42 @@ namespace TimeTracker.Controller;
 
 public class TimeRecordCalculator
 {
-    private const decimal EightHours = 8 * 60;
+    public const double DefaultDailyTargetHours = WorkingTimeRules.DefaultDailyTargetHours;
+
+    private readonly WorkingTimeRules[] _rules;
+
+    /// <param name="dailyTargetHours">Target working hours of a weekday, used by the rules since <see cref="WorkingTimeRules.Rules2026Start" /></param>
+    public TimeRecordCalculator(double dailyTargetHours = DefaultDailyTargetHours) : this(WorkingTimeRules.CreateDefault(dailyTargetHours))
+    {
+    }
+
+    /// <param name="rules">The rule sets, the first one must be valid from the earliest recorded day</param>
+    public TimeRecordCalculator(IEnumerable<WorkingTimeRules> rules)
+    {
+        _rules = rules.OrderBy(_ => _.ValidFrom).ToArray();
+        if (_rules.Length == 0) throw new ArgumentException("At least one rule set is needed", nameof(rules));
+    }
+
+    /// <summary>
+    ///     The rule set valid on the given day
+    /// </summary>
+    public WorkingTimeRules GetRules(DateOnly date)
+    {
+        var result = _rules[0];
+        foreach (var rules in _rules)
+            if (rules.ValidFrom <= date)
+                result = rules;
+
+        return result;
+    }
+
+    /// <summary>
+    ///     Target working minutes of a weekday on the given day
+    /// </summary>
+    public decimal GetDailyTargetMinutes(DateOnly date)
+    {
+        return GetRules(date).DailyTargetMinutes;
+    }
 
     public TimeRecordCategorized[] CalculateCategorySummary(TimeRecord[] timeRecords)
     {
@@ -16,11 +51,13 @@ public class TimeRecordCalculator
         foreach (var dateGroup in timeRecords.GroupBy(_ => _.Date))
         foreach (var item in dateGroup.GroupBy(_ => _.Category, StringComparer.OrdinalIgnoreCase))
         {
-            double work = 0, travel = 0;
+            double work = 0, travelActive = 0, travelPassive = 0;
             foreach (var record in item)
             {
-                if (record.Travel) travel += record.Duration.TotalMinutes;
-                else work += record.Duration.TotalMinutes;
+                var minutes = record.Duration.TotalMinutes;
+                if (record.TravelActive) travelActive += minutes;
+                else if (record.TravelPassive) travelPassive += minutes;
+                else work += minutes;
             }
 
             result.Add(new TimeRecordCategorized
@@ -28,7 +65,8 @@ public class TimeRecordCalculator
                 Date = dateGroup.Key,
                 Category = item.Key,
                 WorkMinutes = (decimal)work,
-                TravelMinutes = (decimal)travel
+                TravelActiveMinutes = (decimal)travelActive,
+                TravelPassiveMinutes = (decimal)travelPassive
             });
         }
 
@@ -40,7 +78,7 @@ public class TimeRecordCalculator
         var result = new List<TimeRecordByDay>();
         foreach (var dateGroup in timeRecords.GroupBy(_ => _.Date))
         {
-            double workSum = 0, travelSum = 0, forceOvertimeSum = 0, flextimeSum = 0;
+            double workSum = 0, travelActiveSum = 0, travelPassiveSum = 0, forceOvertimeSum = 0, flextimeSum = 0;
             TimeOnly? firstStart = null, firstWorkStart = null;
 
             foreach (var record in dateGroup)
@@ -52,9 +90,13 @@ public class TimeRecordCalculator
                     continue;
                 }
 
-                if (record.Travel)
+                if (record.TravelActive)
                 {
-                    travelSum += minutes;
+                    travelActiveSum += minutes;
+                }
+                else if (record.TravelPassive)
+                {
+                    travelPassiveSum += minutes;
                 }
                 else
                 {
@@ -66,34 +108,76 @@ public class TimeRecordCalculator
                 if (firstStart is null || record.Start < firstStart) firstStart = record.Start;
             }
 
-            var work = (decimal)workSum;
-            var travel = (decimal)travelSum;
-            var forceOvertime = (decimal)forceOvertimeSum;
-            var flextime = (decimal)flextimeSum;
-            var totalNormal = work + travel - forceOvertime;
-
-            // Flextime only counts on days without any other record. Otherwise the missing time is already
-            // part of the working time compared to the eight hours.
-            var total = firstStart is null
-                ? -flextime
-                : dateGroup.Key.DayOfWeek switch
-                {
-                    DayOfWeek.Sunday or DayOfWeek.Saturday => totalNormal + forceOvertime,
-                    _ => forceOvertime > 0 ? forceOvertime + (totalNormal > 0 ? totalNormal - EightHours : 0) : totalNormal - EightHours + forceOvertime
-                };
-
-            result.Add(new TimeRecordByDay
+            var day = new TimeRecordByDay
             {
                 Date = dateGroup.Key,
-                OvertimeMinutes = total,
-                TravelMinutes = travel,
-                WorkMinutes = work,
-                FlextimeMinutes = flextime,
+                TravelActiveMinutes = (decimal)travelActiveSum,
+                TravelPassiveMinutes = (decimal)travelPassiveSum,
+                WorkMinutes = (decimal)workSum,
+                FlextimeMinutes = (decimal)flextimeSum,
                 Start = firstWorkStart ?? firstStart ?? TimeOnly.MinValue
-            });
+            };
+
+            var forceOvertime = (decimal)forceOvertimeSum;
+
+            // Flextime only counts on days without any other record. Otherwise the missing time is already
+            // part of the working time compared to the target hours.
+            if (firstStart is null)
+                day.OvertimeMinutes = -day.FlextimeMinutes;
+            else
+                ApplyRules(day, forceOvertime, GetRules(day.Date));
+
+            result.Add(day);
         }
 
         return result.ToArray();
+    }
+
+    /// <summary>
+    ///     Credits the recorded time of the day according to the rules: limits work and active travel, adds the weekend
+    ///     surcharge, limits passive travel and calculates the overtime.
+    /// </summary>
+    private static void ApplyRules(TimeRecordByDay day, decimal forceOvertime, WorkingTimeRules rules)
+    {
+        var work = day.WorkMinutes + day.TravelActiveMinutes;
+        var creditedWork = rules.MaxWorkMinutes is { } maxWork ? Math.Min(work, maxWork) : work;
+        day.MaxWorkMinutes = rules.MaxWorkMinutes;
+        day.WorkCapLossMinutes = work - creditedWork;
+
+        var surchargeFactor = day.Date.DayOfWeek switch
+        {
+            DayOfWeek.Saturday => rules.SaturdaySurcharge,
+            DayOfWeek.Sunday => rules.SundaySurcharge,
+            _ => 0m
+        };
+        day.SurchargeMinutes = creditedWork * surchargeFactor;
+
+        var passive = day.TravelPassiveMinutes;
+        decimal creditedPassive;
+        if (work <= 0)
+            creditedPassive = rules.LimitPassiveTravelWithoutWorkToTarget ? Math.Min(passive, rules.DailyTargetMinutes) : passive;
+        else if (rules.FullPassiveTravelWithWorkMinutes is { } fullPassive)
+            creditedPassive = Math.Min(passive, fullPassive) + Math.Max(passive - fullPassive, 0) * rules.ReducedPassiveTravelFactor;
+        else
+            creditedPassive = passive;
+        day.PassiveTravelLossMinutes = passive - creditedPassive;
+
+        var credited = creditedWork + day.SurchargeMinutes + creditedPassive;
+        day.OvertimeMinutes = CalculateOvertime(day.Date, credited, Math.Min(forceOvertime, credited), rules.DailyTargetMinutes);
+    }
+
+    /// <summary>
+    ///     On weekends all time is overtime, on weekdays the time beyond the target. Time marked as all overtime is not
+    ///     compared to the target.
+    /// </summary>
+    private static decimal CalculateOvertime(DateOnly date, decimal total, decimal forceOvertime, decimal targetMinutes)
+    {
+        var totalNormal = total - forceOvertime;
+        return date.DayOfWeek switch
+        {
+            DayOfWeek.Sunday or DayOfWeek.Saturday => total,
+            _ => forceOvertime > 0 ? forceOvertime + (totalNormal > 0 ? totalNormal - targetMinutes : 0) : totalNormal - targetMinutes
+        };
     }
 
     public TimeRecordByMonth[] CalculateByMonth(TimeRecordByDay[] timeRecords)
@@ -160,31 +244,46 @@ public class TimeRecordCalculator
     public TimeRecordExcel[] CalculateExcel(TimeRecordByDay[] timeRecords)
     {
         // Days with flextime only have no times to be entered
-        return timeRecords.Where(_ => _.WorkMinutes > 0 || _.TravelMinutes > 0 || _.FlextimeMinutes == 0).Select(_ =>
+        return timeRecords
+            .Where(_ => _.WorkMinutes > 0 || _.TravelActiveMinutes > 0 || _.TravelPassiveMinutes > 0 || _.FlextimeMinutes == 0)
+            .Select(_ =>
             {
-                var hasWorkTime = _.WorkMinutes > 0;
-                var hasTravelTime = _.TravelMinutes > 0;
+                var result = new TimeRecordExcel { Date = _.Date };
 
-                if (!hasWorkTime && hasTravelTime)
-                    return new TimeRecordExcel
-                    {
-                        Date = _.Date,
-                        TravelStart = _.Start,
-                        TravelEnd = _.Start.AddMinutes((double)_.TravelMinutes)
-                    };
+                // The span covered so far: the work time, then each travel time is wrapped around it
+                TimeOnly? spanStart = null, spanEnd = null;
 
-                var startTime = _.Start;
-                var endTime = _.Start.AddMinutes((double)_.WorkMinutes + 45);
-                var halfTravelTime = (double)_.TravelMinutes / 2;
-
-                return new TimeRecordExcel
+                var isTravelOnly = _.WorkMinutes <= 0 && (_.TravelActiveMinutes > 0 || _.TravelPassiveMinutes > 0);
+                if (!isTravelOnly)
                 {
-                    Date = _.Date,
-                    Start = startTime,
-                    End = endTime,
-                    TravelStart = hasTravelTime ? startTime.AddMinutes(-halfTravelTime) : null,
-                    TravelEnd = hasTravelTime ? endTime.AddMinutes(halfTravelTime) : null
-                };
+                    spanStart = result.Start = _.Start;
+                    spanEnd = result.End = _.Start.AddMinutes((double)_.WorkMinutes + 45);
+                }
+
+                (result.TravelActiveStart, result.TravelActiveEnd) = WrapTravel(_.TravelActiveMinutes);
+                (result.TravelPassiveStart, result.TravelPassiveEnd) = WrapTravel(_.TravelPassiveMinutes);
+
+                return result;
+
+                // Without a span yet the travel starts with the day, otherwise half of it is put before and after the span
+                (TimeOnly?, TimeOnly?) WrapTravel(decimal minutes)
+                {
+                    if (minutes <= 0) return (null, null);
+
+                    if (spanStart is null || spanEnd is null)
+                    {
+                        spanStart = _.Start;
+                        spanEnd = _.Start.AddMinutes((double)minutes);
+                    }
+                    else
+                    {
+                        var half = (double)minutes / 2;
+                        spanStart = spanStart.Value.AddMinutes(-half);
+                        spanEnd = spanEnd.Value.AddMinutes(half);
+                    }
+
+                    return (spanStart, spanEnd);
+                }
             })
             .ToArray();
     }

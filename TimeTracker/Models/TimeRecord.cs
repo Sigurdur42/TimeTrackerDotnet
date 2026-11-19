@@ -1,12 +1,15 @@
 using System;
 using System.Diagnostics;
-using CsvHelper.Configuration.Attributes;
+using CsvHelper;
 using ReactiveUI;
+using TimeTracker.Controller;
 
 namespace TimeTracker.Models;
 
+[CsvRecord]
+[CsvIgnoreBase]
 [DebuggerDisplay("{Date} - {Start} - {End} - {Duration}")]
-public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
+public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
 {
     /// <summary>
     ///     Comment (category) of records that reduce the overtime instead of being working time
@@ -18,9 +21,11 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     private DateOnly _date;
     private TimeOnly _end;
     private TimeOnly _start;
-    private bool _travel;
+    private bool _travelActive;
+    private bool _travelPassive;
 
-    [Index(0)]
+    [CsvColumn(Index = 0)]
+    [CsvFormat("dd.MM.yyyy", "d.M.yyyy")]
     public DateOnly Date
     {
         get => _date;
@@ -32,7 +37,8 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         }
     }
 
-    [Index(1)]
+    [CsvColumn(Index = 1)]
+    [CsvConverter(typeof(TimeOnlyConverter))]
     public TimeOnly Start
     {
         get => _start;
@@ -44,7 +50,8 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         }
     }
 
-    [Index(2)]
+    [CsvColumn(Index = 2)]
+    [CsvConverter(typeof(TimeOnlyConverter))]
     public TimeOnly End
     {
         get => _end;
@@ -56,21 +63,45 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         }
     }
 
-    [Index(3)]
+    [CsvColumn(Index = 3)]
+    [CsvConverter(typeof(PythonBooleanConverter))]
     public bool AllOvertime
     {
         get => _allOvertime;
         set => this.RaiseAndSetIfChanged(ref _allOvertime, value);
     }
 
-    [Index(5)]
-    public bool Travel
+    /// <summary>
+    ///     Active travel time. A record is either active or passive travel, never both.
+    /// </summary>
+    [CsvColumn(Index = 5)]
+    [CsvConverter(typeof(PythonBooleanConverter))]
+    public bool TravelActive
     {
-        get => _travel;
-        set => this.RaiseAndSetIfChanged(ref _travel, value);
+        get => _travelActive;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _travelActive, value);
+            if (value) TravelPassive = false;
+        }
     }
 
-    [Index(4)]
+    /// <summary>
+    ///     Passive travel time. A record is either active or passive travel, never both.
+    /// </summary>
+    [CsvColumn(Index = 6)]
+    [CsvConverter(typeof(PythonBooleanConverter))]
+    public bool TravelPassive
+    {
+        get => _travelPassive;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _travelPassive, value);
+            if (value) TravelActive = false;
+        }
+    }
+
+    [CsvColumn(Index = 4)]
     public string? Comment
     {
         get => _comment;
@@ -82,9 +113,9 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         }
     }
 
-    [Ignore] public TimeSpan Duration => End - Start;
+    [CsvIgnore] public TimeSpan Duration => End - Start;
 
-    [Ignore]
+    [CsvIgnore]
     public string Category
     {
         get
@@ -104,9 +135,9 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         }
     }
 
-    [Ignore] public bool IsFlextime => string.Equals(Category, FlextimeCategory, StringComparison.OrdinalIgnoreCase);
+    [CsvIgnore] public bool IsFlextime => string.Equals(Category, FlextimeCategory, StringComparison.OrdinalIgnoreCase);
 
-    [Ignore]
+    [CsvIgnore]
     public string Month
     {
         get
@@ -120,7 +151,7 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     {
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
-        return Date.Equals(other.Date) && Start.Equals(other.Start) && End.Equals(other.End) && AllOvertime == other.AllOvertime && Comment == other.Comment && Travel == other.Travel;
+        return Date.Equals(other.Date) && Start.Equals(other.Start) && End.Equals(other.End) && AllOvertime == other.AllOvertime && Comment == other.Comment && TravelActive == other.TravelActive && TravelPassive == other.TravelPassive;
     }
 
     public override bool Equals(object? obj)
@@ -132,7 +163,7 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Date, Start, End, AllOvertime, Comment, Travel);
+        return HashCode.Combine(Date, Start, End, AllOvertime, Comment, TravelActive, TravelPassive);
     }
 
     /// <summary>
@@ -155,7 +186,8 @@ public class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
         other.Start = Start;
         other.End = End;
         other.Comment = Comment;
-        other.Travel = Travel;
+        other.TravelActive = TravelActive;
+        other.TravelPassive = TravelPassive;
         other.AllOvertime = AllOvertime;
     }
 }

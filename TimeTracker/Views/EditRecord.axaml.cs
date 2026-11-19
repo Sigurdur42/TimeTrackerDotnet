@@ -25,8 +25,10 @@ public partial class EditRecord : Window
 
     private void OnOk(object? sender, RoutedEventArgs e)
     {
+        if (!_viewModel.Confirm()) return;
+
         _viewModel.IsOk = true;
-        
+
         Close(true);
     }
 

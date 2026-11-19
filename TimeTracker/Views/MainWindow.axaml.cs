@@ -28,27 +28,19 @@ public partial class MainWindow : Window
         var options = new FilePickerOpenOptions
         {
             AllowMultiple = false,
-            Title = "Select Sata File"
+            Title = "Select Data File"
         };
 
         var result = await storageProvider.OpenFilePickerAsync(options);
         if (result.Count == 0) return;
 
-        var selectedFile = result[0];
-        try
-        {
-            ViewModel.LoadDataFile(new FileInfo(selectedFile.Path.LocalPath));
-        }
-        catch (Exception exception)
-        {
-            // TODO: Better error handling
-            Console.WriteLine(exception);
-        }
+        // Errors are shown by the view model
+        ViewModel.LoadDataFile(new FileInfo(result[0].Path.LocalPath));
     }
 
     private async void OnEditRecord(object? sender, RoutedEventArgs e)
     {
-        var selected = ViewModel.SelectedDaiy;
+        var selected = ViewModel.SelectedRecord;
         await ShowEditRecord(true, selected);
     }
 
@@ -71,7 +63,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            var dialog = new Flextime();
+            var dialog = new Flextime(ViewModel.GetDefaultFlextimeHours);
             await dialog.ShowDialog(this);
             if (!dialog.IsOk) return;
 
@@ -80,13 +72,13 @@ public partial class MainWindow : Window
         }
         catch (Exception exception)
         {
-            Console.WriteLine(exception);
+            ViewModel.ReportError("Adding the flextime", exception);
         }
     }
 
     private async void OnDeleteRecord(object? sender, RoutedEventArgs e)
     {
-        var selected = ViewModel.SelectedDaiy;
+        var selected = ViewModel.SelectedRecord;
         if (selected is null) return;
 
         try
@@ -100,7 +92,7 @@ public partial class MainWindow : Window
         }
         catch (Exception exception)
         {
-            Console.WriteLine(exception);
+            ViewModel.ReportError("Deleting the record", exception);
         }
     }
 
@@ -120,13 +112,14 @@ public partial class MainWindow : Window
             await Task.Delay(10);
 
             dialog.Data.CopyTo(record);
-            if (!editMode) ViewModel.RawData.Insert(0, record);
+            if (editMode) ViewModel.UpdateRecordPosition(record);
+            else ViewModel.AddRecord(record);
 
             ViewModel.RecalculateAndSaveData();
         }
-        catch (Exception e)
+        catch (Exception exception)
         {
-            Console.WriteLine(e);
+            ViewModel.ReportError(editMode ? "Editing the record" : "Adding the record", exception);
         }
     }
 

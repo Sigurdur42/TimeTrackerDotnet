@@ -9,7 +9,8 @@ public class TimeRecordCategorized : ReactiveObject
 {
     private string? _category;
     private DateOnly _date;
-    private decimal _travelMinutes;
+    private decimal _travelActiveMinutes;
+    private decimal _travelPassiveMinutes;
     private decimal _workMinutes;
 
     public DateOnly Date
@@ -18,10 +19,16 @@ public class TimeRecordCategorized : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _date, value);
     }
 
-    public decimal TravelMinutes
+    public decimal TravelActiveMinutes
     {
-        get => _travelMinutes;
-        set => this.RaiseAndSetIfChanged(ref _travelMinutes, value);
+        get => _travelActiveMinutes;
+        set => this.RaiseAndSetIfChanged(ref _travelActiveMinutes, value);
+    }
+
+    public decimal TravelPassiveMinutes
+    {
+        get => _travelPassiveMinutes;
+        set => this.RaiseAndSetIfChanged(ref _travelPassiveMinutes, value);
     }
 
     public decimal WorkMinutes
@@ -36,5 +43,5 @@ public class TimeRecordCategorized : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _category, value);
     }
 
-    public TimeSpan Duration => TimeSpan.FromMinutes((double)(TravelMinutes + WorkMinutes));
+    public TimeSpan Duration => TimeSpan.FromMinutes((double)(TravelActiveMinutes + TravelPassiveMinutes + WorkMinutes));
 }

@@ -16,7 +16,7 @@
         <converter:TimeOnlyToStringConverter x:Key="TimeOnlyToStringConverter" />
     </Window.Resources>
 
-    <Grid Margin="5" RowDefinitions="Auto,Auto,Auto,Auto,Auto,10,Auto" ColumnDefinitions="Auto,Auto">
+    <Grid Margin="5" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,10,Auto" ColumnDefinitions="Auto,Auto">
         <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="0" Margin="0,3,5,0">Date:</TextBlock>
         <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="1" Margin="0,3,5,0">Start:</TextBlock>
         <TextBlock Grid.Column="0" VerticalAlignment="Center" Grid.Row="2" Margin="0,3,5,0">End:</TextBlock>
@@ -37,13 +37,23 @@
 
         <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Grid.Row="3" Grid.Column="1" Spacing="0,0,0,5" Margin="0,3,0,0">
             <CheckBox VerticalAlignment="Center" IsChecked="{Binding TimeRecord.AllOvertime}">Overtime</CheckBox>
-            <CheckBox VerticalAlignment="Center" IsChecked="{Binding TimeRecord.Travel}">Travel</CheckBox>
+            <CheckBox VerticalAlignment="Center" IsChecked="{Binding TimeRecord.TravelActive}">Travel (active)</CheckBox>
+            <CheckBox VerticalAlignment="Center" IsChecked="{Binding TimeRecord.TravelPassive}">Travel (passive)</CheckBox>
         </StackPanel>
 
         <TextBox VerticalAlignment="Center" Grid.Row="4" Grid.Column="1" MinWidth="400" Margin="0,3,0,0"
                  Text="{Binding TimeRecord.Comment}" />
 
-        <Grid Grid.Column="0" Grid.Row="6" Grid.ColumnSpan="2" ColumnDefinitions="*,10,*">
+        <!-- Implausible times must be confirmed by pressing OK a second time -->
+        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,0" MaxWidth="500" HorizontalAlignment="Left"
+                    IsVisible="{Binding Warning, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBlock Foreground="OrangeRed" TextWrapping="Wrap" Text="{Binding Warning}" />
+            <TextBlock Foreground="OrangeRed" TextWrapping="Wrap" FontWeight="SemiBold"
+                       IsVisible="{Binding IsConfirmationPending}"
+                       Text="Press OK again to save anyway." />
+        </StackPanel>
+
+        <Grid Grid.Column="0" Grid.Row="7" Grid.ColumnSpan="2" ColumnDefinitions="*,10,*">
             <Button Grid.Column="0" Click="OnOk" Classes="Small">OK</Button>
             <Button Grid.Column="2" Click="OnCancel" Classes="Small">Cancel</Button>
         </Grid>

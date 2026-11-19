@@ -9,7 +9,7 @@
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="250"
         x:Class="TimeTracker.Views.ConfirmDelete"
         SizeToContent="WidthAndHeight"
-        Title="Löschen">
+        Title="Delete Record">
 
     <Window.Resources>
         <converter:DateOnlyDisplayConverter x:Key="DateOnlyDisplayConverter" />
@@ -19,7 +19,7 @@
     <!-- Values stretch with the window width, the buttons stay docked at the bottom -->
     <Grid Margin="5" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" ColumnDefinitions="Auto,*">
         <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,8" FontWeight="SemiBold">
-            Soll dieser Eintrag gelöscht werden?
+            Do you want to delete this record?
         </TextBlock>
 
         <TextBlock Grid.Column="0" Grid.Row="1" Margin="0,3,5,0">Date:</TextBlock>
@@ -38,13 +38,14 @@
                    Text="{Binding Duration, Converter={StaticResource DurationDisplayConverter}}" />
         <StackPanel Grid.Column="1" Grid.Row="5" Margin="0,3,0,0" Orientation="Horizontal" Spacing="10">
             <CheckBox IsEnabled="False" IsChecked="{Binding AllOvertime, Mode=OneWay}">Overtime</CheckBox>
-            <CheckBox IsEnabled="False" IsChecked="{Binding Travel, Mode=OneWay}">Travel</CheckBox>
+            <CheckBox IsEnabled="False" IsChecked="{Binding TravelActive, Mode=OneWay}">Travel (active)</CheckBox>
+            <CheckBox IsEnabled="False" IsChecked="{Binding TravelPassive, Mode=OneWay}">Travel (passive)</CheckBox>
         </StackPanel>
         <TextBlock Grid.Column="1" Grid.Row="6" Margin="0,3,0,0" MinWidth="300" TextWrapping="Wrap"
                    Text="{Binding Comment}" />
 
         <Grid Grid.Column="0" Grid.Row="8" Grid.ColumnSpan="2" ColumnDefinitions="*,10,*" Margin="0,10,0,0">
-            <Button Grid.Column="0" Click="OnOk" Classes="Small" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">Löschen</Button>
+            <Button Grid.Column="0" Click="OnOk" Classes="Small" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">Delete</Button>
             <Button Grid.Column="2" Click="OnCancel" Classes="Small" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" IsDefault="True" IsCancel="True">Cancel</Button>
         </Grid>
     </Grid>

@@ -37,6 +37,55 @@ public class CsvConfigurationTests
     }
 
     [Test]
+    public void SerializedOutputMatchesExistingFileFormat()
+    {
+        var target = new TimeRecordSerializer();
+        var csvContent = _resourceLoader.GetEmbeddedResourceString(_assembly, "DataFile.csv").Replace("\r\n", "\n");
+
+        var writtenData = target.Serialize(target.Deserialize(csvContent));
+
+        // Files without the passive travel column only get an empty field appended
+        var expected = csvContent.Replace("\n", ";\n");
+        Assert.That(writtenData, Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void FileWithoutPassiveTravelColumnIsRead()
+    {
+        var result = new TimeRecordSerializer().Deserialize("05.02.2024;08:00;10:00;;misc;True\n");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Has.Length.EqualTo(1));
+            Assert.That(result[0].TravelActive, Is.True);
+            Assert.That(result[0].TravelPassive, Is.False);
+        });
+    }
+
+    [Test]
+    public void PassiveTravelIsStoredInSeventhColumn()
+    {
+        var target = new TimeRecordSerializer();
+        var record = new TimeRecord
+        {
+            Date = new DateOnly(2024, 2, 5),
+            Start = new TimeOnly(8, 0),
+            End = new TimeOnly(10, 0),
+            Comment = "misc",
+            TravelPassive = true
+        };
+
+        var written = target.Serialize([record]);
+        var reloaded = target.Deserialize(written);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(written, Is.EqualTo("05.02.2024;08:00;10:00;;misc;;True\n"));
+            Assert.That(reloaded, Is.EqualTo(new[] { record }));
+        });
+    }
+
+    [Test]
     public void TestLoadDataFile()
     {
         var target = new TimeRecordSerializer();
@@ -63,7 +112,7 @@ public class CsvConfigurationTests
             Assert.That(found.Start, Is.EqualTo(start));
             Assert.That(found.End, Is.EqualTo(end));
             Assert.That(found.Comment, Is.EqualTo(comment));
-            Assert.That(found.Travel, Is.EqualTo(isTravel), "Travel");
+            Assert.That(found.TravelActive, Is.EqualTo(isTravel), "Travel");
             Assert.That(found.AllOvertime, Is.EqualTo(isOAllOvertime), @"All Overtime");
         });
     }

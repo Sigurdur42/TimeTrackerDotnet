@@ -1,27 +1,21 @@
 using System;
 using System.Globalization;
 using CsvHelper;
-using CsvHelper.Configuration;
-using CsvHelper.TypeConversion;
 
 namespace TimeTracker.Controller;
 
-public class TimeOnlyConverter : DateOnlyConverter
+public sealed class TimeOnlyConverter : ICsvConverter<TimeOnly>
 {
     private static readonly CultureInfo Culture = new("de-de");
 
-    public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
+    public TimeOnly Read(CsvReader reader, int index)
     {
-        if (text is null) return null;
-
-        return ParseHoursMinutes(text);
+        return ParseHoursMinutes(reader.GetString(index));
     }
 
-    public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
+    public void Write(CsvWriter writer, TimeOnly value)
     {
-        if (value is TimeOnly date) return date.ToString("HH:mm", Culture);
-
-        return null;
+        writer.WriteField(value.ToString("HH:mm", Culture));
     }
 
     /// <summary>
