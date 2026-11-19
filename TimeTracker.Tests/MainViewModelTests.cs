@@ -247,6 +247,33 @@ public class MainViewModelTests
         Assert.That(result, Is.EqualTo((decimal)expectedHours));
     }
 
+    [TestCase("2026-11-30", 4, Description = "Old rules always use 8 hours")]
+    [TestCase("2026-12-01", 3.75, Description = "New rules use the configured hours")]
+    public void HalfSickDayIsHalfOfTheTargetHoursOfTheDay(string date, double expectedHours)
+    {
+        var target = CreateViewModel("", 7.5);
+
+        var result = target.GetHalfSickDayHours(DateOnly.ParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture));
+
+        Assert.That(result, Is.EqualTo((decimal)expectedHours));
+    }
+
+    [Test]
+    public void HalfSickDayIsSavedAndCredited()
+    {
+        // Monday: 5 h work + half of 8 h sick => 1 h overtime
+        var target = CreateViewModel("05.02.2024;08:00;13:00;;a;\n");
+
+        target.AddRecord(TimeRecord.CreateSick(new DateOnly(2024, 2, 5), target.GetHalfSickDayHours(new DateOnly(2024, 2, 5))));
+        target.RecalculateAndSaveData();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.TotalOvertime, Is.EqualTo(TimeSpan.FromHours(1)));
+            Assert.That(File.ReadAllText(Path.Combine(_tempDirectory, "data.csv")), Does.Contain("05.02.2024;00:00;04:00;;Krank;;"));
+        });
+    }
+
     [Test]
     public void FlextimeHoursFollowTheDateUntilChanged()
     {

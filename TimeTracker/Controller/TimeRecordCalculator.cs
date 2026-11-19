@@ -78,7 +78,7 @@ public class TimeRecordCalculator
         var result = new List<TimeRecordByDay>();
         foreach (var dateGroup in timeRecords.GroupBy(_ => _.Date))
         {
-            double workSum = 0, travelActiveSum = 0, travelPassiveSum = 0, forceOvertimeSum = 0, flextimeSum = 0;
+            double workSum = 0, travelActiveSum = 0, travelPassiveSum = 0, forceOvertimeSum = 0, flextimeSum = 0, sickSum = 0;
             TimeOnly? firstStart = null, firstWorkStart = null;
 
             foreach (var record in dateGroup)
@@ -87,6 +87,12 @@ public class TimeRecordCalculator
                 if (record.IsFlextime)
                 {
                     flextimeSum += minutes;
+                    continue;
+                }
+
+                if (record.IsSick)
+                {
+                    sickSum += minutes;
                     continue;
                 }
 
@@ -115,14 +121,15 @@ public class TimeRecordCalculator
                 TravelPassiveMinutes = (decimal)travelPassiveSum,
                 WorkMinutes = (decimal)workSum,
                 FlextimeMinutes = (decimal)flextimeSum,
+                SickMinutes = (decimal)sickSum,
                 Start = firstWorkStart ?? firstStart ?? TimeOnly.MinValue
             };
 
             var forceOvertime = (decimal)forceOvertimeSum;
 
-            // Flextime only counts on days without any other record. Otherwise the missing time is already
-            // part of the working time compared to the target hours.
-            if (firstStart is null)
+            // Flextime only counts on days without work or travel. Otherwise the missing time is already
+            // part of the working time compared to the target hours. A day sick for the rest is compared to the target.
+            if (firstStart is null && (flextimeSum > 0 || sickSum <= 0))
                 day.OvertimeMinutes = -day.FlextimeMinutes;
             else
                 ApplyRules(day, forceOvertime, GetRules(day.Date));
@@ -162,7 +169,11 @@ public class TimeRecordCalculator
             creditedPassive = passive;
         day.PassiveTravelLossMinutes = passive - creditedPassive;
 
-        var credited = creditedWork + day.SurchargeMinutes + creditedPassive;
+        // Sickness is credited on weekdays only, as there is no target on weekends. It is not work, so it is
+        // neither limited nor surcharged.
+        var creditedSick = day.Date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? 0 : day.SickMinutes;
+
+        var credited = creditedWork + day.SurchargeMinutes + creditedPassive + creditedSick;
         day.OvertimeMinutes = CalculateOvertime(day.Date, credited, Math.Min(forceOvertime, credited), rules.DailyTargetMinutes);
     }
 
@@ -243,9 +254,9 @@ public class TimeRecordCalculator
 
     public TimeRecordExcel[] CalculateExcel(TimeRecordByDay[] timeRecords)
     {
-        // Days with flextime only have no times to be entered
+        // Days with flextime or sickness only have no times to be entered
         return timeRecords
-            .Where(_ => _.WorkMinutes > 0 || _.TravelActiveMinutes > 0 || _.TravelPassiveMinutes > 0 || _.FlextimeMinutes == 0)
+            .Where(_ => _.WorkMinutes > 0 || _.TravelActiveMinutes > 0 || _.TravelPassiveMinutes > 0 || (_.FlextimeMinutes == 0 && _.SickMinutes == 0))
             .Select(_ =>
             {
                 var result = new TimeRecordExcel { Date = _.Date };

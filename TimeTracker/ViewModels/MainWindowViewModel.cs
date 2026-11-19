@@ -92,6 +92,14 @@ public class MainWindowViewModel : ViewModelBase
         return _calculator.GetDailyTargetMinutes(date) / 60;
     }
 
+    /// <summary>
+    ///     Hours credited for half a day sick on the given day, half of the daily target hours of that day
+    /// </summary>
+    public decimal GetHalfSickDayHours(DateOnly date)
+    {
+        return _calculator.GetDailyTargetMinutes(date) / 120;
+    }
+
     private TimeRecordCalculator CreateCalculator(double dailyTargetHours)
     {
         try
@@ -311,7 +319,7 @@ public class MainWindowViewModel : ViewModelBase
         Apply(ByDayData, byDay, ByDayOrder, (a, b) =>
             a.OvertimeMinutes == b.OvertimeMinutes && a.OvertimeThisWeek == b.OvertimeThisWeek && a.IsLastOfWeek == b.IsLastOfWeek &&
             a.WorkMinutes == b.WorkMinutes && a.TravelActiveMinutes == b.TravelActiveMinutes && a.TravelPassiveMinutes == b.TravelPassiveMinutes && a.Start == b.Start &&
-            a.WorkCapLossMinutes == b.WorkCapLossMinutes && a.PassiveTravelLossMinutes == b.PassiveTravelLossMinutes && a.SurchargeMinutes == b.SurchargeMinutes);
+            a.WorkCapLossMinutes == b.WorkCapLossMinutes && a.PassiveTravelLossMinutes == b.PassiveTravelLossMinutes && a.SurchargeMinutes == b.SurchargeMinutes && a.SickMinutes == b.SickMinutes && a.FlextimeMinutes == b.FlextimeMinutes);
 
         Array.Reverse(byMonth);
         Apply(ByMonthData, byMonth, ByMonthOrder, (a, b) =>

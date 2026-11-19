@@ -53,7 +53,7 @@
             <Grid Grid.Row="1"
                   Grid.Column="1"
                   Grid.ColumnSpan="2"
-                  ColumnDefinitions="*,*,*,*">
+                  ColumnDefinitions="*,*,*,*,*">
                 <Button Grid.Row="0"
                         Grid.Column="0"
                         Classes="Small"
@@ -80,6 +80,14 @@
                 </Button>
                 <Button Grid.Row="0"
                         Grid.Column="3"
+                        Classes="Small"
+                        HorizontalAlignment="Stretch"
+                        Margin="0,0,5,0"
+                        Click="OnSickDay">
+                    Sick (half day)...
+                </Button>
+                <Button Grid.Row="0"
+                        Grid.Column="4"
                         Classes="Small"
                         HorizontalAlignment="Stretch"
                         Margin="0,0,5,0"

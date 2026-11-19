@@ -76,6 +76,23 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OnSickDay(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var dialog = new SickDay(ViewModel.GetHalfSickDayHours);
+            await dialog.ShowDialog(this);
+            if (!dialog.IsOk) return;
+
+            ViewModel.AddRecord(dialog.CreateRecord());
+            ViewModel.RecalculateAndSaveData();
+        }
+        catch (Exception exception)
+        {
+            ViewModel.ReportError("Adding the sick day", exception);
+        }
+    }
+
     private async void OnDeleteRecord(object? sender, RoutedEventArgs e)
     {
         var selected = ViewModel.SelectedRecord;

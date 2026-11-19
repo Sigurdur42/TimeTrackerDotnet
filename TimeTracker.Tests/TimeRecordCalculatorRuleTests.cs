@@ -815,6 +815,143 @@ public class TimeRecordCalculatorRuleTests
 
     #endregion
 
+    #region Sick
+
+    private static TimeRecord Sick(string date, decimal hours)
+    {
+        return TimeRecord.CreateSick(Date(date), hours);
+    }
+
+    [Test]
+    public void CreateSickStoresHoursAsDurationFromMidnight()
+    {
+        var record = Sick("2024-02-05", 3.75m);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(record.Start, Is.EqualTo(TimeOnly.MinValue));
+            Assert.That(record.Duration, Is.EqualTo(TimeSpan.FromHours(3.75)));
+            Assert.That(record.Comment, Is.EqualTo(TimeRecord.SickCategory));
+            Assert.That(record.IsSick, Is.True);
+            Assert.That(record.IsFlextime, Is.False);
+        });
+    }
+
+    [TestCase("krank")]
+    [TestCase("Krank: half day")]
+    public void SickIsRecognizedByCategory(string comment)
+    {
+        Assert.That(new TimeRecord { Comment = comment }.IsSick, Is.True);
+    }
+
+    [TestCase("08:00", "13:00", 60, Description = "5 h work + 4 h sick = 1 h overtime")]
+    [TestCase("08:00", "12:00", 0)]
+    [TestCase("08:00", "11:00", -60)]
+    public void HalfSickDayCreditsHalfTheTarget(string start, string end, decimal expected)
+    {
+        var day = SingleDay(Record("2024-02-05", start, end), Sick("2024-02-05", 4));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(expected));
+            Assert.That(day.SickMinutes, Is.EqualTo(240));
+            Assert.That(day.WorkMinutes, Is.EqualTo((decimal)(Time(end) - Time(start)).TotalMinutes), "Sickness is not work");
+            Assert.That(day.Start, Is.EqualTo(Time(start)), "Start of the sick record is ignored");
+        });
+    }
+
+    [Test]
+    public void HalfSickDayWithoutWorkMissesTheOtherHalf()
+    {
+        var day = SingleDay(Sick("2024-02-05", 4));
+
+        Assert.That(day.OvertimeMinutes, Is.EqualTo(-240));
+    }
+
+    [Test]
+    public void HalfSickDayWithFlextimeForTheOtherHalfOnlyCountsTheFlextime()
+    {
+        var day = SingleDay(Sick("2024-02-05", 4), TimeRecord.CreateFlextime(Date("2024-02-05"), 4));
+
+        Assert.That(day.OvertimeMinutes, Is.EqualTo(-240));
+    }
+
+    [TestCase("2024-02-10", Description = "Saturday")]
+    [TestCase("2024-02-11", Description = "Sunday")]
+    public void SicknessOnWeekendIsNotCredited(string date)
+    {
+        var sickOnly = SingleDay(Sick(date, 4));
+        var withWork = SingleDay(Record(date, "08:00", "10:00"), Sick(date, 4));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(sickOnly.OvertimeMinutes, Is.Zero);
+            Assert.That(withWork.OvertimeMinutes, Is.EqualTo(120));
+        });
+    }
+
+    [Test]
+    public void SicknessIsNotLimitedByTheMaximumWorkTime()
+    {
+        // Monday under the 2026 rules: 9 h work + 4 h sick, the 10 h maximum only applies to the work
+        var day = SingleDay(Record("2026-12-07", "08:00", "17:00"), Sick("2026-12-07", 4));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.WorkCapLossMinutes, Is.Zero);
+            Assert.That(day.HasLoss, Is.False);
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(5 * 60));
+        });
+    }
+
+    [Test]
+    public void SicknessIsNotWorkForPassiveTravel()
+    {
+        // Under the 2026 rules passive travel without work is limited to the target
+        var day = SingleDay(Sick("2026-12-07", 4), Record("2026-12-07", "08:00", "18:00", passive: true));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(day.PassiveTravelLossMinutes, Is.EqualTo(120));
+            Assert.That(day.OvertimeMinutes, Is.EqualTo(4 * 60));
+        });
+    }
+
+    [Test]
+    public void SicknessIsStoredAndRead()
+    {
+        var serializer = new TimeRecordSerializer();
+        var csv = serializer.Serialize([Sick("2024-02-05", 4)]);
+
+        var result = serializer.Deserialize(csv);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(csv, Is.EqualTo("05.02.2024;00:00;04:00;;Krank;;\n"));
+            Assert.That(result.Single().IsSick, Is.True);
+        });
+    }
+
+    [Test]
+    public void ExcelSkipsSickOnlyDaysAndIgnoresSickness()
+    {
+        var days = _target.CalculateByDay([
+            Sick("2024-02-05", 4),
+            Record("2024-02-06", "08:00", "12:00"), Sick("2024-02-06", 4)
+        ]);
+
+        var result = _target.CalculateExcel(days);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Select(_ => _.Date), Is.EqualTo(new[] { Date("2024-02-06") }));
+            Assert.That(result[0].Start, Is.EqualTo(Time("08:00")));
+            Assert.That(result[0].End, Is.EqualTo(Time("12:45")), "Work and break only");
+        });
+    }
+
+    #endregion
+
     #region CalculateExcel
 
     private TimeRecordExcel SingleExcel(string start, decimal workMinutes, decimal travelMinutes, decimal passiveMinutes = 0)

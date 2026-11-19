@@ -28,6 +28,13 @@ Since 01.12.2026 the following rules apply (earlier days are calculated as befor
 - Passive travel on a day with work counts fully up to 6 h, the rest by half
 
 Time that is not counted is shown in the column *Loss* of the daily overview.
+
+Half a day sick is entered with *Sick (half day)...*: half of the daily target hours of that day are credited,
+e.g. 5 h work + 4 h sick = 1 h overtime. The credit is not work, so it is neither limited to 10 h nor surcharged,
+and it is not credited on weekends. It is stored as a record with the comment ``Krank``:
+```
+07.12.2026;00:00;04:00;;Krank;;
+```
 The rules are defined as rule sets with a start date in `WorkingTimeRules.CreateDefault`, a rule change only needs a further rule set.
 
 The daily target hours (default 8) can be set in ``TimeTrackerSettings.json`` in the application data folder:

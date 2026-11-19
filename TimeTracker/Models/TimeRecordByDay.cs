@@ -14,6 +14,7 @@ public class TimeRecordByDay : ReactiveObject
     private decimal _travelPassiveMinutes;
     private decimal _workMinutes;
     private decimal _flextimeMinutes;
+    private decimal _sickMinutes;
     private TimeSpan _overtimeThisWeek;
 
     public TimeOnly Start { get; set; }
@@ -52,6 +53,15 @@ public class TimeRecordByDay : ReactiveObject
     {
         get => _flextimeMinutes;
         set => this.RaiseAndSetIfChanged(ref _flextimeMinutes, value);
+    }
+
+    /// <summary>
+    ///     Time of sickness credited as working time on a weekday
+    /// </summary>
+    public decimal SickMinutes
+    {
+        get => _sickMinutes;
+        set => this.RaiseAndSetIfChanged(ref _sickMinutes, value);
     }
 
     public TimeSpan OvertimeThisWeek

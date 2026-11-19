@@ -16,6 +16,11 @@ public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     /// </summary>
     public const string FlextimeCategory = "Gleitzeit";
 
+    /// <summary>
+    ///     Comment (category) of records that credit time of sickness on a weekday
+    /// </summary>
+    public const string SickCategory = "Krank";
+
     private bool _allOvertime;
     private string? _comment;
     private DateOnly _date;
@@ -137,6 +142,8 @@ public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
 
     [CsvIgnore] public bool IsFlextime => string.Equals(Category, FlextimeCategory, StringComparison.OrdinalIgnoreCase);
 
+    [CsvIgnore] public bool IsSick => string.Equals(Category, SickCategory, StringComparison.OrdinalIgnoreCase);
+
     [CsvIgnore]
     public string Month
     {
@@ -171,12 +178,26 @@ public partial class TimeRecord : ReactiveObject, IEquatable<TimeRecord>
     /// </summary>
     public static TimeRecord CreateFlextime(DateOnly date, decimal hours)
     {
+        return CreateDuration(date, hours, FlextimeCategory);
+    }
+
+    /// <summary>
+    ///     Creates a record for time of sickness credited as working time, e.g. half of the target hours for half a day
+    ///     sick. The hours are stored as duration starting at midnight.
+    /// </summary>
+    public static TimeRecord CreateSick(DateOnly date, decimal hours)
+    {
+        return CreateDuration(date, hours, SickCategory);
+    }
+
+    private static TimeRecord CreateDuration(DateOnly date, decimal hours, string category)
+    {
         return new TimeRecord
         {
             Date = date,
             Start = TimeOnly.MinValue,
             End = TimeOnly.MinValue.AddMinutes((double)Math.Round(hours * 60)),
-            Comment = FlextimeCategory
+            Comment = category
         };
     }
 
