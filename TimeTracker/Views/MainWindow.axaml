@@ -76,16 +76,16 @@
                         HorizontalAlignment="Stretch"
                         Margin="0,0,5,0"
                         Click="OnFlextime">
-                    Gleitzeit...
+                    Flextime...
                 </Button>
                 <Button Grid.Row="0"
                         Grid.Column="3"
                         Classes="Small"
                         HorizontalAlignment="Stretch"
                         Margin="0,0,5,0"
-                        IsEnabled="{Binding SelectedDaiy, Converter={x:Static ObjectConverters.IsNotNull}}"
+                        IsEnabled="{Binding SelectedRecord, Converter={x:Static ObjectConverters.IsNotNull}}"
                         Click="OnDeleteRecord">
-                    Löschen...
+                    Delete...
                 </Button>
             </Grid>
         </Grid>
@@ -117,7 +117,7 @@
                               GridLinesVisibility="All"
                               SelectionMode="Single"
                               BorderThickness="1"
-                              SelectedItem="{Binding SelectedDaiy}"
+                              SelectedItem="{Binding SelectedRecord}"
                               VerticalScrollBarVisibility="Visible"
                               BorderBrush="Gray">
                         <DataGrid.Columns>

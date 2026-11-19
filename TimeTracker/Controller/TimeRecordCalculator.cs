@@ -7,33 +7,41 @@ namespace TimeTracker.Controller;
 
 public class TimeRecordCalculator
 {
-    private const decimal EightHours = 8 * 60;
+    public const double DefaultDailyTargetHours = WorkingTimeRules.DefaultDailyTargetHours;
 
-    /// <summary>
-    ///     First day the rules of <see cref="ApplyRulesOf2026" /> apply, earlier days are calculated as before
-    /// </summary>
-    public static readonly DateOnly RulesOf2026Start = new(2026, 12, 1);
+    private readonly WorkingTimeRules[] _rules;
 
-    public const decimal MaxWorkMinutes = 10 * 60;
-    public const decimal FullPassiveTravelMinutes = 6 * 60;
-    public const decimal ReducedPassiveTravelFactor = 0.5m;
-    public const double DefaultDailyTargetHours = 8;
-
-    private readonly decimal _dailyTargetMinutes;
-
-    /// <param name="dailyTargetHours">Target working hours of a weekday, used by the rules since <see cref="RulesOf2026Start" /></param>
-    public TimeRecordCalculator(double dailyTargetHours = DefaultDailyTargetHours)
+    /// <param name="dailyTargetHours">Target working hours of a weekday, used by the rules since <see cref="WorkingTimeRules.Rules2026Start" /></param>
+    public TimeRecordCalculator(double dailyTargetHours = DefaultDailyTargetHours) : this(WorkingTimeRules.CreateDefault(dailyTargetHours))
     {
-        if (dailyTargetHours is <= 0 or > 24) throw new ArgumentOutOfRangeException(nameof(dailyTargetHours), dailyTargetHours, "Must be between 0 and 24 hours");
-        _dailyTargetMinutes = (decimal)dailyTargetHours * 60;
+    }
+
+    /// <param name="rules">The rule sets, the first one must be valid from the earliest recorded day</param>
+    public TimeRecordCalculator(IEnumerable<WorkingTimeRules> rules)
+    {
+        _rules = rules.OrderBy(_ => _.ValidFrom).ToArray();
+        if (_rules.Length == 0) throw new ArgumentException("At least one rule set is needed", nameof(rules));
     }
 
     /// <summary>
-    ///     Target working minutes of a weekday: eight hours before <see cref="RulesOf2026Start" />, the configured ones since
+    ///     The rule set valid on the given day
+    /// </summary>
+    public WorkingTimeRules GetRules(DateOnly date)
+    {
+        var result = _rules[0];
+        foreach (var rules in _rules)
+            if (rules.ValidFrom <= date)
+                result = rules;
+
+        return result;
+    }
+
+    /// <summary>
+    ///     Target working minutes of a weekday on the given day
     /// </summary>
     public decimal GetDailyTargetMinutes(DateOnly date)
     {
-        return date < RulesOf2026Start ? EightHours : _dailyTargetMinutes;
+        return GetRules(date).DailyTargetMinutes;
     }
 
     public TimeRecordCategorized[] CalculateCategorySummary(TimeRecord[] timeRecords)
@@ -116,10 +124,8 @@ public class TimeRecordCalculator
             // part of the working time compared to the target hours.
             if (firstStart is null)
                 day.OvertimeMinutes = -day.FlextimeMinutes;
-            else if (day.Date < RulesOf2026Start)
-                day.OvertimeMinutes = CalculateOvertime(day.Date, day.WorkMinutes + day.TravelActiveMinutes + day.TravelPassiveMinutes, forceOvertime, EightHours);
             else
-                ApplyRulesOf2026(day, forceOvertime);
+                ApplyRules(day, forceOvertime, GetRules(day.Date));
 
             result.Add(day);
         }
@@ -128,36 +134,36 @@ public class TimeRecordCalculator
     }
 
     /// <summary>
-    ///     Rules valid since <see cref="RulesOf2026Start" />:
-    ///     <list type="bullet">
-    ///         <item>Work and active travel count up to <see cref="MaxWorkMinutes" /> a day, the rest is lost</item>
-    ///         <item>Work and active travel get a surcharge of 25% on Saturday and 100% on Sunday</item>
-    ///         <item>Passive travel on days without work counts up to the daily target hours</item>
-    ///         <item>Passive travel on days with work counts fully up to <see cref="FullPassiveTravelMinutes" />, the rest by half</item>
-    ///     </list>
+    ///     Credits the recorded time of the day according to the rules: limits work and active travel, adds the weekend
+    ///     surcharge, limits passive travel and calculates the overtime.
     /// </summary>
-    private void ApplyRulesOf2026(TimeRecordByDay day, decimal forceOvertime)
+    private static void ApplyRules(TimeRecordByDay day, decimal forceOvertime, WorkingTimeRules rules)
     {
         var work = day.WorkMinutes + day.TravelActiveMinutes;
-        var creditedWork = Math.Min(work, MaxWorkMinutes);
+        var creditedWork = rules.MaxWorkMinutes is { } maxWork ? Math.Min(work, maxWork) : work;
+        day.MaxWorkMinutes = rules.MaxWorkMinutes;
         day.WorkCapLossMinutes = work - creditedWork;
 
         var surchargeFactor = day.Date.DayOfWeek switch
         {
-            DayOfWeek.Saturday => 0.25m,
-            DayOfWeek.Sunday => 1m,
+            DayOfWeek.Saturday => rules.SaturdaySurcharge,
+            DayOfWeek.Sunday => rules.SundaySurcharge,
             _ => 0m
         };
         day.SurchargeMinutes = creditedWork * surchargeFactor;
 
         var passive = day.TravelPassiveMinutes;
-        var creditedPassive = work > 0
-            ? Math.Min(passive, FullPassiveTravelMinutes) + Math.Max(passive - FullPassiveTravelMinutes, 0) * ReducedPassiveTravelFactor
-            : Math.Min(passive, _dailyTargetMinutes);
+        decimal creditedPassive;
+        if (work <= 0)
+            creditedPassive = rules.LimitPassiveTravelWithoutWorkToTarget ? Math.Min(passive, rules.DailyTargetMinutes) : passive;
+        else if (rules.FullPassiveTravelWithWorkMinutes is { } fullPassive)
+            creditedPassive = Math.Min(passive, fullPassive) + Math.Max(passive - fullPassive, 0) * rules.ReducedPassiveTravelFactor;
+        else
+            creditedPassive = passive;
         day.PassiveTravelLossMinutes = passive - creditedPassive;
 
         var credited = creditedWork + day.SurchargeMinutes + creditedPassive;
-        day.OvertimeMinutes = CalculateOvertime(day.Date, credited, Math.Min(forceOvertime, credited), _dailyTargetMinutes);
+        day.OvertimeMinutes = CalculateOvertime(day.Date, credited, Math.Min(forceOvertime, credited), rules.DailyTargetMinutes);
     }
 
     /// <summary>

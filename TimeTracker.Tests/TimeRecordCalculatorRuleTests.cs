@@ -655,7 +655,7 @@ public class TimeRecordCalculatorRuleTests
             Assert.That(day.OvertimeMinutes, Is.EqualTo(120));
             Assert.That(day.WorkCapLossMinutes, Is.EqualTo(60));
             Assert.That(day.IsOverMaxWorkTime, Is.True);
-            Assert.That(day.LossDescription, Does.Contain("10 h"));
+            Assert.That(day.LossDescription, Does.Contain("over 10:00 h"));
         });
     }
 
@@ -771,6 +771,46 @@ public class TimeRecordCalculatorRuleTests
     public void InvalidTargetHoursAreRejected(double hours)
     {
         Assert.That(() => new TimeRecordCalculator(hours), Throws.TypeOf<ArgumentOutOfRangeException>());
+    }
+
+    [Test]
+    public void FurtherRuleSetAppliesFromItsStart()
+    {
+        // A rule change in 2027 only needs a further rule set
+        var rules = WorkingTimeRules.CreateDefault()
+            .Append(new WorkingTimeRules { ValidFrom = new DateOnly(2027, 1, 1), DailyTargetMinutes = 7 * 60, MaxWorkMinutes = 9 * 60 })
+            .ToArray();
+        var target = new TimeRecordCalculator(rules);
+
+        var result = target.CalculateByDay([
+            Record("2026-12-31", "07:00", "18:00"),
+            Record("2027-01-04", "07:00", "18:00")
+        ]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result[0].OvertimeMinutes, Is.EqualTo(120), "Rules of 2026: limit 10 h, target 8 h");
+            Assert.That(result[1].OvertimeMinutes, Is.EqualTo(120), "Rules of 2027: limit 9 h, target 7 h");
+            Assert.That(result[1].WorkCapLossMinutes, Is.EqualTo(120));
+            Assert.That(result[1].LossDescription, Does.Contain("over 09:00 h"));
+        });
+    }
+
+    [TestCase("2000-01-01", 0)]
+    [TestCase("2026-11-30", 0)]
+    [TestCase("2026-12-01", 1)]
+    [TestCase("2030-06-01", 1)]
+    public void RuleSetIsSelectedByDate(string date, int expectedIndex)
+    {
+        var rules = WorkingTimeRules.CreateDefault();
+
+        Assert.That(new TimeRecordCalculator(rules).GetRules(Date(date)), Is.SameAs(rules[expectedIndex]));
+    }
+
+    [Test]
+    public void RuleSetsAreRequired()
+    {
+        Assert.That(() => new TimeRecordCalculator(Array.Empty<WorkingTimeRules>()), Throws.ArgumentException);
     }
 
     #endregion

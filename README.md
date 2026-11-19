@@ -28,6 +28,7 @@ Since 01.12.2026 the following rules apply (earlier days are calculated as befor
 - Passive travel on a day with work counts fully up to 6 h, the rest by half
 
 Time that is not counted is shown in the column *Loss* of the daily overview.
+The rules are defined as rule sets with a start date in `WorkingTimeRules.CreateDefault`, a rule change only needs a further rule set.
 
 The daily target hours (default 8) can be set in ``TimeTrackerSettings.json`` in the application data folder:
 ```json

@@ -1,0 +1,17 @@
+# Text files are stored with LF in the repository and checked out with the platform line ending
+* text=auto
+
+*.cs text diff=csharp
+*.axaml text
+*.csproj text
+*.sln text eol=crlf
+*.md text
+*.yml text
+*.json text
+*.csv text
+
+# Binary files
+*.ico binary
+*.png binary
+*.otf binary
+*.dll binary

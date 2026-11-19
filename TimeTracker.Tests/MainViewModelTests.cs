@@ -155,6 +155,33 @@ public class MainViewModelTests
     }
 
     [Test]
+    public void InvalidTargetHoursAreShownAndStayVisible()
+    {
+        var target = CreateViewModel("05.02.2024;08:00;10:00;;a;\n", 0);
+
+        target.ReportError("Deleting the record", new IOException("locked"));
+        var withActionError = target.ErrorMessage;
+        target.RecalculateAndSaveData();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(withActionError, Does.Contain("DailyTargetHours").And.Contain("Deleting the record failed: locked"));
+            Assert.That(target.ErrorMessage, Does.Contain("DailyTargetHours").And.Not.Contain("locked"), "Successful save clears the action error only");
+            Assert.That(target.GetDefaultFlextimeHours(new DateOnly(2026, 12, 7)), Is.EqualTo(8), "Default hours are used");
+        });
+    }
+
+    [Test]
+    public void ReportedErrorIsShown()
+    {
+        var target = CreateViewModel("05.02.2024;08:00;10:00;;a;\n");
+
+        target.ReportError("Adding the flextime", new InvalidOperationException("boom"));
+
+        Assert.That(target.ErrorMessage, Is.EqualTo("Adding the flextime failed: boom"));
+    }
+
+    [Test]
     public void ValidFileHasNoError()
     {
         var target = CreateViewModel("05.02.2024;08:00;10:00;;a;\n");
@@ -182,7 +209,7 @@ public class MainViewModelTests
     {
         var target = CreateViewModel("07.02.2024;08:00;10:00;;a;\n06.02.2024;08:00;10:00;;b;\n05.02.2024;08:00;10:00;;c;\n");
         var record = target.RawData[0];
-        target.SelectedDaiy = record;
+        target.SelectedRecord = record;
 
         record.Date = new DateOnly(2024, 2, 5);
         record.Start = new TimeOnly(9, 0);
@@ -191,7 +218,7 @@ public class MainViewModelTests
         Assert.Multiple(() =>
         {
             Assert.That(target.RawData.Select(_ => _.Comment), Is.EqualTo(new[] { "b", "a", "c" }));
-            Assert.That(target.SelectedDaiy, Is.SameAs(record));
+            Assert.That(target.SelectedRecord, Is.SameAs(record));
         });
     }
 

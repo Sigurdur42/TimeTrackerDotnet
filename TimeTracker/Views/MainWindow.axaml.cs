@@ -28,7 +28,7 @@ public partial class MainWindow : Window
         var options = new FilePickerOpenOptions
         {
             AllowMultiple = false,
-            Title = "Select Sata File"
+            Title = "Select Data File"
         };
 
         var result = await storageProvider.OpenFilePickerAsync(options);
@@ -40,7 +40,7 @@ public partial class MainWindow : Window
 
     private async void OnEditRecord(object? sender, RoutedEventArgs e)
     {
-        var selected = ViewModel.SelectedDaiy;
+        var selected = ViewModel.SelectedRecord;
         await ShowEditRecord(true, selected);
     }
 
@@ -72,13 +72,13 @@ public partial class MainWindow : Window
         }
         catch (Exception exception)
         {
-            Console.WriteLine(exception);
+            ViewModel.ReportError("Adding the flextime", exception);
         }
     }
 
     private async void OnDeleteRecord(object? sender, RoutedEventArgs e)
     {
-        var selected = ViewModel.SelectedDaiy;
+        var selected = ViewModel.SelectedRecord;
         if (selected is null) return;
 
         try
@@ -92,7 +92,7 @@ public partial class MainWindow : Window
         }
         catch (Exception exception)
         {
-            Console.WriteLine(exception);
+            ViewModel.ReportError("Deleting the record", exception);
         }
     }
 
@@ -117,9 +117,9 @@ public partial class MainWindow : Window
 
             ViewModel.RecalculateAndSaveData();
         }
-        catch (Exception e)
+        catch (Exception exception)
         {
-            Console.WriteLine(e);
+            ViewModel.ReportError(editMode ? "Editing the record" : "Adding the record", exception);
         }
     }
 

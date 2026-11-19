@@ -66,6 +66,11 @@ public class TimeRecordByDay : ReactiveObject
     public decimal WorkCapLossMinutes { get; set; }
 
     /// <summary>
+    ///     Maximum of work and active travel of the day, null if there is none
+    /// </summary>
+    public decimal? MaxWorkMinutes { get; set; }
+
+    /// <summary>
     ///     Passive travel that is not counted due to its limitation
     /// </summary>
     public decimal PassiveTravelLossMinutes { get; set; }
@@ -88,7 +93,7 @@ public class TimeRecordByDay : ReactiveObject
             if (!HasLoss) return null;
 
             var lines = new List<string>();
-            if (WorkCapLossMinutes > 0) lines.Add($"Work time over 10 h: {Format(WorkCapLossMinutes)} not counted");
+            if (WorkCapLossMinutes > 0) lines.Add($"Work time over {Format(MaxWorkMinutes ?? 0)} h: {Format(WorkCapLossMinutes)} not counted");
             if (PassiveTravelLossMinutes > 0) lines.Add($"Travel (passive) limited: {Format(PassiveTravelLossMinutes)} not counted");
             return string.Join(Environment.NewLine, lines);
 

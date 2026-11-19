@@ -18,7 +18,8 @@ public class MainWindowViewModel : ViewModelBase
     private readonly ILocalSettings _settings;
     private FileInfo? _dataFile;
     private string? _errorMessage;
-    private TimeRecord? _selectedDaiy;
+    private string? _settingsError;
+    private TimeRecord? _selectedRecord;
     private TimeSpan _totalOvertime;
 
     public MainWindowViewModel() : this(DefaultAppDirectory, null)
@@ -45,7 +46,7 @@ public class MainWindowViewModel : ViewModelBase
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            ErrorMessage = $"Could not open the data file: {exception.Message}";
+            SetError($"Could not open the data file: {exception.Message}");
             return;
         }
 
@@ -55,12 +56,32 @@ public class MainWindowViewModel : ViewModelBase
     private static string DefaultAppDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TimeTracker");
 
     /// <summary>
-    ///     Error of loading or saving the data file, null if there is none
+    ///     Errors to be shown to the user: an invalid setting and the last error of an action, null if there is none
     /// </summary>
     public string? ErrorMessage
     {
-        get => _errorMessage;
-        private set => this.RaiseAndSetIfChanged(ref _errorMessage, value);
+        get
+        {
+            if (_settingsError is null) return _errorMessage;
+            return _errorMessage is null ? _settingsError : _settingsError + Environment.NewLine + _errorMessage;
+        }
+    }
+
+    /// <summary>
+    ///     Shows the error of an action, e.g. a dialog that failed
+    /// </summary>
+    public void ReportError(string action, Exception exception)
+    {
+        SetError($"{action} failed: {exception.Message}");
+    }
+
+    /// <summary>
+    ///     Sets the error of the last action, null when it succeeded. An invalid setting stays visible.
+    /// </summary>
+    private void SetError(string? message)
+    {
+        _errorMessage = message;
+        this.RaisePropertyChanged(nameof(ErrorMessage));
     }
 
     /// <summary>
@@ -71,16 +92,16 @@ public class MainWindowViewModel : ViewModelBase
         return _calculator.GetDailyTargetMinutes(date) / 60;
     }
 
-    private static TimeRecordCalculator CreateCalculator(double dailyTargetHours)
+    private TimeRecordCalculator CreateCalculator(double dailyTargetHours)
     {
         try
         {
             return new TimeRecordCalculator(dailyTargetHours);
         }
-        catch (ArgumentOutOfRangeException exception)
+        catch (ArgumentOutOfRangeException)
         {
             // An invalid setting must not prevent the application from starting
-            Console.WriteLine(exception);
+            _settingsError = $"Invalid setting DailyTargetHours = {dailyTargetHours}, {TimeRecordCalculator.DefaultDailyTargetHours} hours are used instead.";
             return new TimeRecordCalculator();
         }
     }
@@ -116,10 +137,10 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _totalOvertime, value);
     }
 
-    public TimeRecord? SelectedDaiy
+    public TimeRecord? SelectedRecord
     {
-        get => _selectedDaiy;
-        set => this.RaiseAndSetIfChanged(ref _selectedDaiy, value);
+        get => _selectedRecord;
+        set => this.RaiseAndSetIfChanged(ref _selectedRecord, value);
     }
 
     public string? FileName => _dataFile?.FullName ?? _settings.LastDataFile;
@@ -134,7 +155,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         if (!fileInfo.Exists)
         {
-            ErrorMessage = $"The data file {fileInfo.FullName} does not exist";
+            SetError($"The data file {fileInfo.FullName} does not exist");
             return false;
         }
 
@@ -146,13 +167,13 @@ public class MainWindowViewModel : ViewModelBase
         catch (Exception exception)
         {
             // Any error of a single line must not prevent the application from starting
-            ErrorMessage = $"Could not load {fileInfo.FullName}: {exception.Message}";
+            SetError($"Could not load {fileInfo.FullName}: {exception.Message}");
             return false;
         }
 
         _dataFile = fileInfo;
         _settings.LastDataFile = fileInfo.FullName;
-        ErrorMessage = null;
+        SetError(null);
         this.RaisePropertyChanged(nameof(FileName));
 
         RawData.Reset(data);
@@ -183,10 +204,10 @@ public class MainWindowViewModel : ViewModelBase
         var isAfterPrevious = index == 0 || Compare(RawData[index - 1], record) <= 0;
         if (isBeforeNext && isAfterPrevious) return;
 
-        var wasSelected = ReferenceEquals(SelectedDaiy, record);
+        var wasSelected = ReferenceEquals(SelectedRecord, record);
         RawData.RemoveAt(index);
         AddRecord(record);
-        if (wasSelected) SelectedDaiy = record;
+        if (wasSelected) SelectedRecord = record;
 
         return;
 
@@ -215,7 +236,7 @@ public class MainWindowViewModel : ViewModelBase
         var index = IndexOf(record);
         if (index < 0) return;
 
-        if (ReferenceEquals(SelectedDaiy, record)) SelectedDaiy = null;
+        if (ReferenceEquals(SelectedRecord, record)) SelectedRecord = null;
         RawData.RemoveAt(index);
     }
 
@@ -231,19 +252,19 @@ public class MainWindowViewModel : ViewModelBase
 
         if (_dataFile is null)
         {
-            ErrorMessage = "Changes are not saved, as no data file is loaded. Fix the file and load it again.";
+            SetError("Changes are not saved, as no data file is loaded. Fix the file and load it again.");
             return false;
         }
 
         try
         {
             _serializer.Serialize(_dataFile, raw);
-            ErrorMessage = null;
+            SetError(null);
             return true;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            ErrorMessage = $"Could not save {_dataFile.FullName}: {exception.Message}";
+            SetError($"Could not save {_dataFile.FullName}: {exception.Message}");
             return false;
         }
     }
